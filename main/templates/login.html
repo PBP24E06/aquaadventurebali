@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% block content %}
 <form method="POST">
     {% csrf_token %}
     <div style="display: flex; flex-direction: column;">
@@ -14,5 +15,13 @@
         <div>
             <input type="submit" value="Login">
         </div>
+        <div>
+            <p>
+                Don't have an account yet?
+                <a href="{% url 'main:register' %}">Register Now</a>
+            </p>
+            
+        </div>
     </div>        
 </form>
+{% endblock content %}

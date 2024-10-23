@@ -1,5 +1,6 @@
-{% extends "base.html %}
+{% extends "base.html" %}
 
+{% block content %}
 <form method="POST">
     {% csrf_token %}
     <div style="display: flex; flex-direction: column;">
@@ -21,3 +22,4 @@
         </div>
     </div>        
 </form>
+{% endblock content %}
