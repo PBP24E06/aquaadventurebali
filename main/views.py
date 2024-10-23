@@ -13,9 +13,36 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
 
-# Create your views here.
+import pandas as pd
+from main.models import Product
+import os
+
 def show_main(request):
-    return render(request, "main.html", {})
+    # Path file CSV
+    csv_file_path = os.path.join('static', 'data', 'data.csv')
+
+    # Membaca CSV menggunakan pandas
+    try:
+        df = pd.read_csv(csv_file_path)
+    except FileNotFoundError:
+        return HttpResponse("File CSV tidak ditemukan.")
+    except Exception as e:
+        return HttpResponse(f"Error membaca file CSV: {str(e)}")
+
+    # Simpan data dari CSV ke database
+    for index, row in df.iterrows():
+        Product.objects.create(
+            name=row['name'],
+            kategori=row['kategori'],
+            harga=row['harga'],
+            toko=row['toko'],
+            alamat=row['alamat'],
+            kontak=row['kontak'],
+        )
+
+    # Ambil semua produk untuk ditampilkan di template
+    product_list = Product.objects.all()
+    return render(request, "main.html", {'data':product_list})
 
 def login(request):
   if request.method == 'POST':
@@ -39,3 +66,4 @@ def login(request):
 
 def register(request):
     return render(request, "register.html", {})
+

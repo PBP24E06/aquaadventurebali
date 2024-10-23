@@ -12,7 +12,7 @@ class Product(models.Model):
     alamat = models.TextField()
     kontak = models.CharField(max_length=255)
     gambar = models.ImageField()
-    admin = models.OneToOneField(User, on_delete=models.CASCADE)
+    # admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def average_rating(self):
         reviews = self.reviews.all() 
