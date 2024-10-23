@@ -40,3 +40,6 @@ def login(request):
 
 def register(request):
     return render(request, "register.html", {})
+
+def review(request):
+  return render(request, "review.html", {})
