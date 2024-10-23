@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="POST">
+    {% csrf_token %}
+    <div style="display: flex; flex-direction: column;">
+        <div>
+            <label for="username">Username</label>
+            <input type="text" name="username">            
+        </div>
+        <div>
+            <label for="password">Password</label>
+            <input type="password" name="password">
+        </div>
+        <div>
+            <label for="konfirmasi">Konfirmasi Password</label>
+            <input type="password" name="konfirmasi">
+        </div>
+
+        <div>
+            <input type="submit" value="Register">
+        </div>
+    </div>        
+</form>
+{% endblock content %}
