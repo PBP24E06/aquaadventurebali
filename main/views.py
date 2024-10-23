@@ -17,7 +17,7 @@ from django.utils.html import strip_tags
 def show_main(request):
     return render(request, "main.html", {})
 
-def login(request):
+def login_user(request):
   if request.method == 'POST':
     form = AuthenticationForm(data=request.POST)
 
@@ -31,9 +31,9 @@ def login(request):
     else:
       messages.error(request, "Invalid username or password. Please try again.")
 
-    
   else:
     form = AuthenticationForm(request)
+
   context = {'form': form}
   return render(request, 'login.html', context)
 
@@ -45,12 +45,13 @@ def register(request):
     if form.is_valid():
       form.save()
       messages.success(request, 'Your account has been successfully created!')
-      return redirect('main:login')
+      return redirect('main:login_user')
+    
   context = {'form': form}
   return render(request, 'register.html', context)
     
 def logout_user(request):
     logout(request)
-    response = HttpResponseRedirect(reverse("main:login"))
+    response = HttpResponseRedirect(reverse("main:login_user"))
     response.delete_cookie("last_login")
     return response
