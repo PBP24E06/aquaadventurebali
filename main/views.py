@@ -38,4 +38,19 @@ def login(request):
   return render(request, 'login.html', context)
 
 def register(request):
-    return render(request, "register.html", {})
+  form = UserCreationForm()
+
+  if request.method == "POST":
+    form = UserCreationForm(request.POST)
+    if form.is_valid():
+      form.save()
+      messages.success(request, 'Your account has been successfully created!')
+      return redirect('main:login')
+  context = {'form': form}
+  return render(request, 'register.html', context)
+    
+def logout_user(request):
+    logout(request)
+    response = HttpResponseRedirect(reverse("main:login"))
+    response.delete_cookie("last_login")
+    return response
