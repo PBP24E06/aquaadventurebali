@@ -12,10 +12,11 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
+from main.models import Product
+from main.forms import ProductForm, ReviewForm
 
-# Create your views here.
 def show_main(request):
-    return render(request, "main.html", {})
+  return render(request, "main.html", {})
 
 def login(request):
   if request.method == 'POST':
@@ -40,5 +41,19 @@ def login(request):
 def register(request):
     return render(request, "register.html", {})
 
-def review(request):
-  return render(request, "review.html", {})
+def create_review(request, id):
+  form = ReviewForm(request.POST or None)
+  product = Product.objects.filter(pk=id)
+
+  if form.is_valid() and request.method == "POST":
+    review = form.save(commit=False)
+    review.user = request.user
+    review.save()
+    return redirect("main:show_main")
+  
+  context = {
+    "form": form,
+    "product": product
+  }
+     
+  return render(request, "review.html", context)
