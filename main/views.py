@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.shortcuts import render, reverse
 from django.http import HttpResponse
 from django.core import serializers
@@ -14,30 +14,39 @@ from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
 
 # Create your views here.
-@login_required(login_url='/login')
+# @login_required(login_url='/login')
 def show_main(request):
     return render(request, "main.html", {})
 
 
 def login(request):
-    if request.method == 'POST':
-      form = AuthenticationForm(data=request.POST)
+  if request.method == 'POST':
+    form = AuthenticationForm(data=request.POST)
 
-      if form.is_valid():
-        user = form.get_user()
-        login(request, user)
-        response = HttpResponseRedirect(reverse("main:show_main"))
-        response.set_cookie('last_login', str(datetime.datetime.now()))
-        return response
-      
-      else:
-        messages.error(request, "Invalid username or password. Please try again.")
-
+    if form.is_valid():
+      user = form.get_user()
+      login(request, user)
+      response = HttpResponseRedirect(reverse("main:show_main"))
+      response.set_cookie('last_login', str(datetime.datetime.now()))
+      return response
     
     else:
-        form = AuthenticationForm(request)
-    context = {'form': form}
-    return render(request, 'login.html', context)
+      messages.error(request, "Invalid username or password. Please try again.")
+
+    
+  else:
+    form = AuthenticationForm(request)
+  context = {'form': form}
+  return render(request, 'login.html', context)
 
 def register(request):
-    return render(request, "register.html", {})
+    form = UserCreationForm()
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your account has been successfully created!')
+            return redirect('main:login')
+    context = {'form':form}
+    return render(request, 'register.html', context)
