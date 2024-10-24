@@ -22,7 +22,11 @@ from functools import wraps
 
 
 def show_main(request):
-  return render(request, "main.html", {})
+    products = Product.objects.all()
+    context = {
+        'data': products
+    }
+    return render(request, "main.html", context)
 
 def login_user(request):
   if request.method == 'POST':
@@ -99,10 +103,11 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
 
 def create_review(request, id):
   form = ReviewForm(request.POST or None)
-  product = Product.objects.filter(pk=id)
+  product = Product.objects.get(pk=id)
   if form.is_valid() and request.method == "POST":
     review = form.save(commit=False)
     review.user = request.user
+    review.product = product
     review.save()
     return redirect("main:show_main")
   
