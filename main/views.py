@@ -16,6 +16,7 @@ from main.models import Product, UserProfile
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
+from .forms import CheckoutForm
 
 import pandas as pd
 from main.models import Product
@@ -86,11 +87,7 @@ def make_admin(request, user_id):
     messages.success(request, f'User {user_profile.user.username} is now an admin!')
   return redirect('main:show_main')
 
-def checkout(request, id):
-  product = Product.objects.get(pk=id)
-  total_harga = product.harga + 10000
-  context = {'product': product, 'total_harga': total_harga}
-  return render(request, "checkout.html", context)
+
   
 # @login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
@@ -116,3 +113,22 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
 def show_json(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+
+def checkout(request, id):
+  product = Product.objects.get(pk=id)
+  total_harga = product.harga + 10000
+  
+  if request.method == 'POST':
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            # Simpan data ke Cart atau lakukan proses lainnya
+            cart = form.save(commit=False)  # Buat instance Cart tanpa menyimpan ke database
+            cart.product = product  # Hubungkan produk dengan cart
+            cart.save()  # Simpan cart ke database
+            return redirect('some_success_url')  # Redirect setelah penyimpanan sukses
+  else:
+      form = CheckoutForm()
+
+  context = {'product': product, 'total_harga': total_harga, 'form': form}
+  return render(request, "checkout.html", context)

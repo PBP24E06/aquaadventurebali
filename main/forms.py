@@ -1,5 +1,6 @@
 from django.forms import ModelForm
 from main.models import Product, Review, Forum, Wishlist, Cart, Report
+from django import forms
 
 class ProductForm(ModelForm):
     class Meta:
@@ -25,10 +26,14 @@ class WishlistForm(ModelForm):
         # fields = (isi sesuai field form yang dibutuhkan)
 
 
-class CartForm(ModelForm):
+class CheckoutForm(ModelForm):
+    name = forms.CharField(max_length=255)
+    email = forms.EmailField()
+    phone = forms.CharField(max_length=15)
+
     class Meta:
         model = Cart
-        # fields = (isi sesuai field form yang dibutuhkan)
+        fields = ["name", "email", "phone"]
         
 
 class ReportForm(ModelForm):
