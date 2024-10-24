@@ -16,7 +16,7 @@ from main.models import Product, UserProfile
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
-from .forms import CheckoutForm
+
 
 
 def show_main(request):

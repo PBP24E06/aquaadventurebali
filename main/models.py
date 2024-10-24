@@ -11,6 +11,16 @@ class UserProfile(models.Model):
     )
     role = models.CharField(max_length=10, choices=roles, default='CUSTOMER')
 
+    def promote_admin(self):
+        if self.role == 'CUSTOMER':
+            self.role = 'ADMIN'
+            self.save()
+
+    def demote_to_customer(self):
+        if self.role == 'ADMIN':
+            self.role = 'CUSTOMER'
+            self.save()
+
 
 class Product(models.Model):
     id = models.UUIDField(primary_key=True, default = uuid.uuid4, editable = False)
