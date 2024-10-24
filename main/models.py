@@ -12,8 +12,13 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=10, choices=roles, default='CUSTOMER')
 
     def promote_admin(self):
-        if (self.role == 'CUSTOMER'):
+        if self.role == 'CUSTOMER':
             self.role = 'ADMIN'
+            self.save()
+
+    def demote_to_customer(self):
+        if self.role == 'ADMIN':
+            self.role = 'CUSTOMER'
             self.save()
 
 
@@ -26,6 +31,7 @@ class Product(models.Model):
     alamat = models.TextField()
     kontak = models.CharField(max_length=255)
     gambar = models.ImageField()
+    # admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def average_rating(self):
         reviews = self.reviews.all() 
@@ -55,6 +61,10 @@ class Wishlist(models.Model):
 class Cart(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="cart", on_delete=models.CASCADE)  # Relasi balik ke user
+    name = models.CharField(max_length=255)
+    email = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=30)
+    time = models.DateField(auto_now_add=True)
 
 
 class Report(models.Model):

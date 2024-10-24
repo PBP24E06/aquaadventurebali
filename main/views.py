@@ -18,6 +18,7 @@ from functools import wraps
 from django.contrib.auth.models import User
 
 
+
 def show_main(request):
     product = Product.objects.all()
     return render(request, "main.html", {'data':product})
@@ -83,11 +84,7 @@ def make_admin(request, user_id):
     messages.success(request, f'User {user_profile.user.username} is now an admin!')
   return redirect('main:show_main')
 
-def checkout(request, id):
-  product = Product.objects.get(pk=id)
-  total_harga = product.harga + 10000
-  context = {'product': product, 'total_harga': total_harga}
-  return render(request, "checkout.html", context)
+
   
 # @login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
@@ -113,3 +110,31 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
 def show_json(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+
+def checkout(request, id):
+    # Use get_object_or_404 to handle non-existing products gracefully
+    product = Product.objects.get(pk=id)
+    total_harga = product.harga + 10000  # Add shipping cost
+
+    if request.method == 'POST':
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            cart = form.save(commit=False)  # Create instance without saving
+            cart.product = product  # Associate the product with the cart
+            cart.user = request.user  # Set the current user (assuming you want to save this)
+            cart.save()  # Save the cart instance to the database
+            messages.success(request, 'Checkout successful!')  # Provide feedback
+            return redirect('some_success_url')  # Redirect after successful save
+        else:
+            messages.error(request, 'Please correct the errors below.')
+
+    else:
+        form = CheckoutForm()
+
+    context = {
+        'product': product,
+        'total_harga': total_harga,
+        'form': form
+    }
+    return render(request, "checkout.html", context)
