@@ -92,7 +92,7 @@ def checkout(request, id):
   context = {'product': product, 'total_harga': total_harga}
   return render(request, "checkout.html", context)
   
-# @login_required
+@login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
   if request.method == 'POST':
     admin_password = request.POST.get('admin_password')
@@ -113,15 +113,20 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
   
   return render(request, 'request_admin.html', {})
 
+@login_required
 def create_review(request, id):
   form = ReviewForm(request.POST or None)
   product = Product.objects.get(pk=id)
-  if form.is_valid() and request.method == "POST":
-    review = form.save(commit=False)
-    review.user = request.user
-    review.product = product
-    review.save()
-    return redirect("main:show_main")
+  if request.method == "POST":
+    print("POST data:", request.POST)  # Debug print
+    if form.is_valid():
+      review = form.save(commit=False)
+      review.user = request.user
+      review.product = product
+      review.save()
+      return redirect("main:show_main")
+    else:
+      print( form.errors)
   
   context = {
     "form": form,

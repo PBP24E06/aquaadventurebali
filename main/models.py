@@ -29,7 +29,7 @@ class Product(models.Model):
 
     def average_rating(self):
         reviews = self.reviews.all() 
-        if len(reviews) > 0:
+        if reviews.objects.count() > 0:
             return sum(review.rating for review in reviews) / len(reviews)
         return 0
 

@@ -10,15 +10,15 @@
             <div class="flex flex-col gap-y-px">
                 <div>
                     <label for="rating" class="items-center">Rating: </label>
-                    <span id="ratingnumber">3.0</span>
+                    <span id="ratingnumber">5.0</span>
                 </div>
                 <div>
-                    <input type="range" name="rating" id="rating" min="1" max="5" step="0.5" value="3" class="h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" oninput="updateRating(this.value)">
+                    <input type="range" name="rating" id="rating" min="1" max="5" step="0.5" value="5" class="h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" oninput="updateRating(this.value)">
                 </div>
                 <br>
 
-                <label for="message">Berikan ulasan untuk produk ini</label>
-                <textarea name="message" id="message" cols="30" rows="5" class="mt-2 border border-black rounded-md border-gray p-2 placeholder:text-sm placeholder:text-gray-400 text-sm" placeholder="Tuliskan pengalaman anda menggunakan produk ini"></textarea>
+                <label for="review_text">Berikan ulasan untuk produk ini</label>
+                <textarea name="review_text" id="review_text" cols="30" rows="5" class="mt-2 border border-black rounded-md border-gray p-2 placeholder:text-sm placeholder:text-gray-400 text-sm" placeholder="Tuliskan pengalaman anda menggunakan produk ini" required></textarea>
 
 
                 <div class="flex justify-end mt-20 gap-x-4">
