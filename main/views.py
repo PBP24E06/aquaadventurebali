@@ -12,9 +12,8 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
-from main.models import Product
-from main.forms import ProductForm, ReviewForm
 from main.models import Product, UserProfile
+from main.forms import ReviewForm
 
 
 from main.models import Product, UserProfile
@@ -97,3 +96,19 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
     return redirect('main:show_main')
   
   return render(request, 'request_admin.html', {})
+
+def create_review(request, id):
+  form = ReviewForm(request.POST or None)
+  product = Product.objects.filter(pk=id)
+  if form.is_valid() and request.method == "POST":
+    review = form.save(commit=False)
+    review.user = request.user
+    review.save()
+    return redirect("main:show_main")
+  
+  context = {
+    "form": form,
+    "product": product
+  }
+     
+  return render(request, "review.html", context)
