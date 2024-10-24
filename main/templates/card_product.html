@@ -8,7 +8,9 @@
     <p><strong>Kontak:</strong> {{ data.kontak }}</p>
     <div style="display: flex; flex-direction: column; gap: 10px; width: 70px;">
         <button style="background-color: blue; color: white;">Ulasan</button>
-        <button style="background-color: blue; color: white;">Checkout</button>
+        <a href="{% url 'main:checkout' data.pk %}">
+            <button style="background-color: blue; color: white;">Checkout</button>
+        </a>
         <button style="background-color: blue; color: white;">Complain</button>
     </div>
     <h1>*Untuk admin*</h1>
