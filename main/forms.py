@@ -11,7 +11,7 @@ class ProductForm(ModelForm):
 class ReviewForm(ModelForm):
     class Meta:
         model = Review
-        fields = ["rating", "review_text"]
+        # fields = ["rating", "review_text"]
 
 
 class ForumForm(ModelForm):
@@ -28,12 +28,12 @@ class WishlistForm(ModelForm):
 
 class CheckoutForm(ModelForm):
     name = forms.CharField(max_length=255)
-    email = forms.EmailField()
-    phone = forms.CharField(max_length=15)
+    email = forms.CharField(max_length=255)
+    phone_number = forms.CharField(max_length=30)
 
     class Meta:
         model = Cart
-        fields = ["name", "email", "phone"]
+        fields = ["name", "email", "phone_number"]
         
 
 class ReportForm(ModelForm):

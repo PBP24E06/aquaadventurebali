@@ -113,19 +113,28 @@ def show_json(request):
 
 
 def checkout(request, id):
-  product = Product.objects.get(pk=id)
-  total_harga = product.harga + 10000
-  
-  if request.method == 'POST':
+    # Use get_object_or_404 to handle non-existing products gracefully
+    product = Product.objects.get(pk=id)
+    total_harga = product.harga + 10000  # Add shipping cost
+
+    if request.method == 'POST':
         form = CheckoutForm(request.POST)
         if form.is_valid():
-            # Simpan data ke Cart atau lakukan proses lainnya
-            cart = form.save(commit=False)  # Buat instance Cart tanpa menyimpan ke database
-            cart.product = product  # Hubungkan produk dengan cart
-            cart.save()  # Simpan cart ke database
-            return redirect('some_success_url')  # Redirect setelah penyimpanan sukses
-  else:
-      form = CheckoutForm()
+            cart = form.save(commit=False)  # Create instance without saving
+            cart.product = product  # Associate the product with the cart
+            cart.user = request.user  # Set the current user (assuming you want to save this)
+            cart.save()  # Save the cart instance to the database
+            messages.success(request, 'Checkout successful!')  # Provide feedback
+            return redirect('some_success_url')  # Redirect after successful save
+        else:
+            messages.error(request, 'Please correct the errors below.')
 
-  context = {'product': product, 'total_harga': total_harga, 'form': form}
-  return render(request, "checkout.html", context)
+    else:
+        form = CheckoutForm()
+
+    context = {
+        'product': product,
+        'total_harga': total_harga,
+        'form': form
+    }
+    return render(request, "checkout.html", context)

@@ -51,6 +51,10 @@ class Wishlist(models.Model):
 class Cart(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="cart", on_delete=models.CASCADE)  # Relasi balik ke user
+    name = models.CharField(max_length=255)
+    email = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=30)
+    time = models.DateField(auto_now_add=True)
 
 
 class Report(models.Model):
