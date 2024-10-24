@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.urls import path
 
+
 from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json
+
 
 app_name = "main"
 

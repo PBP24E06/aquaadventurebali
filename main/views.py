@@ -22,32 +22,8 @@ from main.models import Product
 import os
 
 def show_main(request):
-    # Path file CSV
-    csv_file_path = os.path.join('static', 'data', 'data.csv')
-
-    # Membaca CSV menggunakan pandas
-    try:
-        df = pd.read_csv(csv_file_path)
-    except FileNotFoundError:
-        return HttpResponse("File CSV tidak ditemukan.")
-    except Exception as e:
-        return HttpResponse(f"Error membaca file CSV: {str(e)}")
-
-    # Simpan data dari CSV ke database
-    for index, row in df.iterrows():
-        Product.objects.create(
-            name=row['name'],
-            kategori=row['kategori'],
-            harga=row['harga'],
-            toko=row['toko'],
-            alamat=row['alamat'],
-            kontak=row['kontak'],
-            gambar=row['gambar']
-        )
-
-    # Ambil semua produk untuk ditampilkan di template
-    product_list = Product.objects.all()
-    return render(request, "main.html", {'data':product_list})
+    product = Product.objects.all()
+    return render(request, "main.html", {'data':product})
 
 def login_user(request):
   if request.method == 'POST':
@@ -85,10 +61,10 @@ def register(request):
   return render(request, 'register.html', context)
     
 def logout_user(request):
-  logout(request)
-  response = HttpResponseRedirect(reverse("main:login_user"))
-  response.delete_cookie("last_login")
-  return response
+    logout(request)
+    response = HttpResponseRedirect(reverse('main:login_user'))
+    response.delete_cookie('last_login')
+    return response
 
 def admin_required(view_func):  # Decorator untuk autentikasi edit & remove product (buat paima)
   @wraps(view_func)
