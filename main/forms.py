@@ -24,13 +24,14 @@ class WishlistForm(ModelForm):
     class Meta:
         model = Wishlist
         # fields = (isi sesuai field form yang dibutuhkan)
-        fields = ['name', 'email', 'phone_number']
+        
 
 
 class TransactionForm(ModelForm):
     class Meta:
         model = Transaction
         # fields = (isi sesuai field form yang dibutuhkan)
+        fields = ["name", "email", "phone_number"]
         
 
 class ReportForm(ModelForm):
