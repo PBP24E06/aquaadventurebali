@@ -136,3 +136,7 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
     return redirect('main:show_main')
   
   return render(request, 'request_admin.html', {})
+
+def show_json(request):
+    data = Product.objects.all()
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")

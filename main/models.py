@@ -10,8 +10,6 @@ class UserProfile(models.Model):
         ('ADMIN', 'Admin'),
     )
     role = models.CharField(max_length=10, choices=roles, default='CUSTOMER')
-    
-
 
     def promote_admin(self):
         if (self.role == 'CUSTOMER'):
@@ -55,18 +53,8 @@ class Wishlist(models.Model):
     
 
 class Cart(models.Model):
-    user = models.ForeignKey(User, related_name="cart", on_delete=models.CASCADE)  # Relasi balik ke user
-
-    def total_price(self):
-        return sum(item.total_price() for item in self.items.all())
-
-class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, related_name='cart_items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-
-    def total_price(self):
-        return self.product.harga * self.quantity
+    user = models.ForeignKey(User, related_name="cart", on_delete=models.CASCADE)  # Relasi balik ke user
 
 
 class Report(models.Model):
