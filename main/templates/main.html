@@ -1,7 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
 {% include "navbar.html" %}
-<div>
+
+<div class="pt-20">
+
     <h1>Aqua Adventure Bali</h1>
+
+    <!-- if role == "CUSTOMER" -->
+    <div class="m-2 cursor-pointer">
+        <a href="{% url 'main:request_admin' %}" class="btn btn-primary" style="background-color: blue; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            Request Admin Access
+        </a>
+    </div>
+
+    <!-- if role == "ADMIN" -->
+    <div class="m-2">
+        <h1>*Untuk admin*</h1>
+        <button style="background-color: blue; color: white; margin-top: 30px; margin: 20px; padding: 10px 20px; border-radius: 5px;">Tambah Produk</button>
+    </div>
+
+
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;">
+        {% for data in data %}
+        <div style="border: 1px solid #ccc; border-radius: 10px; padding: 15px; margin: 10px; width: 200px; background-color: lightblue;">
+            <h3>{{ data.name }}</h3>
+            <p><strong>ID:</strong> {{ data.id }}</p>
+            <p><strong>Kategori:</strong> {{ data.kategori }}</p>
+            <p><strong>Harga:</strong> {{ data.harga }}</p>
+            <p><strong>Toko:</strong> {{ data.toko }}</p>
+            <p><strong>Alamat:</strong> {{ data.alamat }}</p>
+            <p><strong>Kontak:</strong> {{ data.kontak }}</p>
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 70px;">
+                <button style="background-color: blue; color: white;">Ulasan</button>
+                <button style="background-color: blue; color: white;">Checkout</button>
+                <button style="background-color: blue; color: white;">Complain</button>
+            </div>
+            <h1>*Untuk admin*</h1>
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 70px;">
+                <button style="background-color: blue; color: white;">Delete</button>
+                <button style="background-color: blue; color: white;">Edit</button>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
 </div>
+
 {% endblock content %}
