@@ -77,6 +77,21 @@ def admin_required(view_func):  # Decorator untuk autentikasi edit & remove prod
     raise PermissionDenied
   return _wrapped_view
 
+@login_required
+def make_admin(request, user_id):  
+  if request.user.profile.role == 'CUSTOMER':
+    user_profile = UserProfile.objects.get(user_id=user_id)
+    user_profile.role = 'ADMIN'
+    user_profile.save()
+    messages.success(request, f'User {user_profile.user.username} is now an admin!')
+  return redirect('main:show_main')
+
+def checkout(request, id):
+  product = Product.objects.get(pk=id)
+  total_harga = product.harga + 10000
+  context = {'product': product, 'total_harga': total_harga}
+  return render(request, "checkout.html", context)
+  
 # @login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
   if request.method == 'POST':
@@ -97,3 +112,7 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
     return redirect('main:show_main')
   
   return render(request, 'request_admin.html', {})
+
+def show_json(request):
+    data = Product.objects.all()
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
