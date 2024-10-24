@@ -29,8 +29,9 @@ class Product(models.Model):
 
     def average_rating(self):
         reviews = self.reviews.all() 
-        if reviews.objects.count() > 0:
-            return sum(review.rating for review in reviews) / len(reviews)
+        if reviews.count() > 0:
+            avg = sum(review.rating for review in reviews) / len(reviews)
+            return f"{avg:.2f}"
         return 0
 
 
@@ -39,6 +40,9 @@ class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # User yang membuat review
     rating = models.FloatField(validators=[MinValueValidator(1.0), MaxValueValidator(5.0)])
     review_text = models.TextField()
+
+    class Meta:
+        unique_together = ('product', 'user')
 
 
 class Forum(models.Model):

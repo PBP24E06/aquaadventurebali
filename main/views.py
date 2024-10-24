@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
-from main.models import Product, UserProfile
+from main.models import Product, UserProfile, Review
 from main.forms import ReviewForm
 
 
@@ -133,9 +133,19 @@ def create_review(request, id):
     "product": product
   }
      
-  return render(request, "review.html", context)
+  return render(request, "review_form.html", context)
 
 
 def show_json(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+
+def all_review(request, id):
+    product = Product.objects.get(pk=id)
+    reviews = product.reviews.all()
+    context = {
+      "product": product,
+      "reviews": reviews
+    }
+    return render(request, "all_review.html", context)

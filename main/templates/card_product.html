@@ -8,7 +8,7 @@
     <p><strong>Kontak:</strong> {{ data.kontak }}</p>
     <div style="display: flex; flex-direction: column; gap: 10px; width: 70px;">
 
-        <a href="{% url 'main:review' data.pk %}">
+        <a href="{% url 'main:all_review' data.pk %}">
             <button style="background-color: blue; color: white;">Ulasan</button>
         </a>
 

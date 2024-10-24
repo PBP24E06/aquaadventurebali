@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% include "navbar.html" %}
+
+<div class="pt-20">
+  <div class="flex space-x-8"> <!-- Flex container for two columns -->
+    <!-- Left column: Product Info -->
+    <div class="w-1/4 sticky top-4 h-screen bg-white p-4 shadow-md"> <!-- Sticky sidebar -->
+      <h2 class="text-xl font-bold mb-4">{{ product.name }}</h2>
+      <img src="{{ product.gambar }}" alt="{{ product.name }}" class="mb-4 w-full rounded-md shadow-md">
+      <p><strong>Toko:</strong> {{ product.toko }}</p>
+      <p><strong>Kategori:</strong> {{ product.kategori }}</p>
+      <p><strong>Harga:</strong> {{ product.harga }}</p>
+      <p><strong>Alamat:</strong> {{ product.alamat }}</p>
+      <p><strong>Kontak:</strong> {{ product.kontak }}</p>
+    </div>
+
+    <!-- Right column: Reviews Section -->
+    <div class="w-3/4">
+      <!-- Average Rating at the top -->
+      <div class="bg-gray-100 p-4 rounded-md mb-4">
+        <h3 class="text-2xl font-semibold mb-2">Rating: {{ product.average_rating }} / 5</h3>
+      </div>
+
+      <!-- Reviews -->
+      <div class="space-y-4">
+        <h3 class="text-xl font-bold">Reviews</h3>
+        {% if reviews %}
+          {% for review in reviews %}
+            <div class="bg-white p-4 rounded-md shadow-md">
+              <p><strong>User:</strong> {{ review.user.username }}</p>
+              <p><strong>Rating:</strong> {{ review.rating }}</p>
+              <p><strong>Review:</strong> {{ review.review_text }}</p>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-gray-500">No reviews yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
