@@ -13,6 +13,11 @@ class UserProfile(models.Model):
     
 
 
+    def promote_admin(self):
+        if (self.role == 'CUSTOMER'):
+            self.role = 'ADMIN'
+            self.save()
+
 
 class Product(models.Model):
     id = models.UUIDField(primary_key=True, default = uuid.uuid4, editable = False)
@@ -23,7 +28,6 @@ class Product(models.Model):
     alamat = models.TextField()
     kontak = models.CharField(max_length=255)
     gambar = models.ImageField()
-    # admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def average_rating(self):
         reviews = self.reviews.all() 

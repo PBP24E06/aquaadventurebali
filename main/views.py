@@ -15,6 +15,7 @@ from django.utils.html import strip_tags
 from main.models import Product, UserProfile
 from django.core.exceptions import PermissionDenied
 from functools import wraps
+from django.contrib.auth.models import User
 
 import pandas as pd
 from main.models import Product
@@ -69,6 +70,8 @@ def login_user(request):
   return render(request, 'login.html', context)
 
 def register(request):
+  form = UserCreationForm()
+
   if request.method == "POST":
     form = UserCreationForm(request.POST)
 
@@ -112,3 +115,24 @@ def checkout(request, id):
   total_harga = product.harga + 10000
   context = {'product': product, 'total_harga': total_harga}
   return render(request, "checkout.html", context)
+  
+# @login_required
+def request_admin(request):  # Form untuk mengubah user menjadi admin
+  if request.method == 'POST':
+    admin_password = request.POST.get('admin_password')
+
+    if admin_password == 'adminpbp':  # Password untuk menjadi admin
+      user = request.user
+
+      if user.profile.role == 'CUSTOMER':
+        user.profile.promote_admin()
+        messages.success(request, 'You have been promoted to admin!')
+      else:
+        messages.error(request, 'You are already an admin!')
+
+    else:
+      messages.error(request, 'Incorrect admin password!')
+
+    return redirect('main:show_main')
+  
+  return render(request, 'request_admin.html', {})
