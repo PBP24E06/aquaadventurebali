@@ -77,3 +77,6 @@ def make_admin(request, user_id):
     user_profile.save()
     messages.success(request, f'User {user_profile.user.username} is now an admin!')
   return redirect('main:show_main')
+
+def checkout_cart(request, id):
+  return render(request, "checkout.html")
