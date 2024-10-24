@@ -17,6 +17,8 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
 
+from .forms import TransactionForm
+
 
 
 def show_main(request):
@@ -113,7 +115,25 @@ def show_json(request):
 
 
 def checkout(request, id):
-    product = Product.objects.get(pk=id)
-    total_harga = product.harga + 10000
-    context = {'product': product, 'total_harga': total_harga}
-    return render(request, "checkout.html", context)
+  product = Product.objects.get(pk=id)
+  total_harga = product.harga + 10000
+
+  if request.method == 'POST':
+      form = TransactionForm(request.POST)
+      if form.is_valid():
+          # Process form data here, e.g., save the order, send an email, etc.
+          transaction = form.save(commit=False)
+          transaction.product = product
+          transaction.user = request.user
+          transaction.save()
+          return redirect('main:show_main')
+
+  else:
+      form = TransactionForm()
+
+  context = {
+      'product': product,
+      'total_harga': total_harga,
+      'form': form
+  }
+  return render(request, "checkout.html", context)
