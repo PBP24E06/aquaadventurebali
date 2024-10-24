@@ -17,9 +17,6 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
 
-import pandas as pd
-from main.models import Product
-import os
 
 def show_main(request):
     product = Product.objects.all()
