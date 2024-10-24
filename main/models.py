@@ -3,6 +3,15 @@ import uuid
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, related_name="profile", on_delete=models.CASCADE)
+    roles = (
+        ('CUSTOMER', 'Customer'),
+        ('ADMIN', 'Admin'),
+    )
+    role = models.CharField(max_length=10, choices=roles, default='CUSTOMER')
+
+
 class Product(models.Model):
     id = models.UUIDField(primary_key=True, default = uuid.uuid4, editable = False)
     name = models.CharField(max_length=255)
