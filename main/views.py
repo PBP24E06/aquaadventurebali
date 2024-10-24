@@ -61,10 +61,10 @@ def register(request):
   return render(request, 'register.html', context)
     
 def logout_user(request):
-  logout(request)
-  response = HttpResponseRedirect(reverse("main:login_user"))
-  response.delete_cookie("last_login")
-  return response
+    logout(request)
+    response = HttpResponseRedirect(reverse('main:login'))
+    response.delete_cookie('last_login')
+    return response
 
 def admin_required(view_func):  # Decorator untuk autentikasi edit & remove product (buat paima)
   @wraps(view_func)

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from main.views import show_main, login_user, register, request_admin
+from main.views import show_main, login_user, register, request_admin, logout_user
 
 app_name = "main"
 
@@ -9,4 +9,5 @@ urlpatterns = [
     path("login/", login_user, name="login_user"),
     path("register/", register, name="register"),
     path("request-admin/", request_admin, name="request_admin"),
+    path('logout/', logout_user, name='logout_user'),
 ]
