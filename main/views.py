@@ -15,6 +15,7 @@ from django.utils.html import strip_tags
 from main.models import Product, UserProfile
 from django.core.exceptions import PermissionDenied
 from functools import wraps
+from django.contrib.auth.models import User
 
 import pandas as pd
 from main.models import Product
@@ -99,11 +100,23 @@ def admin_required(view_func):  # Decorator untuk autentikasi edit & remove prod
     raise PermissionDenied
   return _wrapped_view
 
-@login_required
-def make_admin(request, user_id):  
-  if request.user.profile.role == 'CUSTOMER':
-    user_profile = UserProfile.objects.get(user_id=user_id)
-    user_profile.role = 'ADMIN'
-    user_profile.save()
-    messages.success(request, f'User {user_profile.user.username} is now an admin!')
-  return redirect('main:show_main')
+# @login_required
+def request_admin(request):  # Form untuk mengubah user menjadi admin
+  if request.method == 'POST':
+    admin_password = request.POST.get('admin_password')
+
+    if admin_password == 'adminpbp':  # Password untuk menjadi admin
+      user = request.user
+
+      if user.profile.role == 'CUSTOMER':
+        user.profile.promote_admin()
+        messages.success(request, 'You have been promoted to admin!')
+      else:
+        messages.error(request, 'You are already an admin!')
+
+    else:
+      messages.error(request, 'Incorrect admin password!')
+
+    return redirect('main:show_main')
+  
+  return render(request, 'request_admin.html', {})
