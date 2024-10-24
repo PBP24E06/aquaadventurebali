@@ -41,6 +41,7 @@ def show_main(request):
             toko=row['toko'],
             alamat=row['alamat'],
             kontak=row['kontak'],
+            gambar=row['gambar']
         )
 
     # Ambil semua produk untuk ditampilkan di template
@@ -106,5 +107,8 @@ def make_admin(request, user_id):
     messages.success(request, f'User {user_profile.user.username} is now an admin!')
   return redirect('main:show_main')
 
-def checkout_cart(request):
-  return render(request, "checkout.html")
+def checkout(request, id):
+  product = Product.objects.get(pk=id)
+  total_harga = product.harga + 10000
+  context = {'product': product, 'total_harga': total_harga}
+  return render(request, "checkout.html", context)

@@ -10,6 +10,8 @@ class UserProfile(models.Model):
         ('ADMIN', 'Admin'),
     )
     role = models.CharField(max_length=10, choices=roles, default='CUSTOMER')
+    
+
 
 
 class Product(models.Model):
