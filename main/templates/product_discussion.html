@@ -1,0 +1,135 @@
+<div id="kontainerDiscussionForm" style="display: flex; flex-direction: column;">
+    <h1><strong>Diskusi</strong></h1>
+    <div style="display: flex;">
+        <div>
+            <p>Ada pertanyaan? Diskusikan dengan penjual atau pengguna lain</p>
+        </div>
+        <div>
+            <button id="discussionTalkBtn"><strong>Tulis Pertanyaan</strong></button>
+        </div>
+    </div>
+    <div id="discussionContent"></div>
+    <div id="addDiscussionBox">
+        <form id="addDiscussionForm">
+            <div>
+                <input type="text" id="message" name="message" placeholder="Apa yang ingin Anda tanyakan mengenai produk ini?" required>
+            </div>
+            <div>
+                <button type="submit" id="submitDiscussionEntry">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    async function getForumEntries() {
+        return fetch("{% url 'main:show_json_forum_by_id' %}").then(res => res.json());
+    }
+
+    async function refreshForum() {
+        document.getElementById("discussionContent").innerHTML = "";
+        const forumEntries = await getForumEntries();
+        let htmlString = "";
+
+        if (forumEntries.length === 0) {
+            htmlString = `
+                <div class="flex flex-col items-center justify-center">
+                    <img src="{% static 'image/no-discussion.png' %}" alt="no discussion" class="w-16 h-16 mb-2"/>
+                    <p class="text-center"><strong>Belum Ada Diskusi Produk</strong></p>
+                </div>`;
+        } else {
+            forumEntries.forEach((item) => {
+                const message = DOMPurify.sanitize(item.fields.message);
+                htmlString += `
+                    <div>
+                        <div id="UserProfile" style="display: flex;">
+                            <div>
+                                <img src="{% static 'image/profile-picture.png' %}" alt="user profile" class="w-16 h-16 mb-2"/>    
+                            </div>
+                            <div style="display:flex; flex-direction: column;">
+                                <div>
+                                    <p>{{ item.user.name }}</p>
+                                </div>
+                                <div>
+                                    <p>${message}</p>
+                                </div>
+                                <div class="replySection">
+                                    {% if item.parent %}
+                                        {% for reply in item.parent.all %}
+                                        <div style="display: flex;">
+                                            <div>
+                                                <img src="{% static 'image/profile-picture.png' %}" alt="user profile" class="w-16 h-16 mb-2"/>
+                                            </div>
+                                            <div>
+                                                <p>{{ reply.user.name }} {{ reply.created_at }}</p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p>{{ reply.message }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <form class="replyForm" data-parent-id="${item.id}">
+                                        <div>
+                                            <input type="text" name="comment" placeholder="Isi komentar disini" required>
+                                        </div>
+                                        <div>
+                                            <button type="submit">Save</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+        document.getElementById("discussionContent").innerHTML = htmlString;
+
+        // Attach event listeners for all reply forms
+        document.querySelectorAll('.replyForm').forEach(form => {
+            form.onsubmit = addReply; // Attach addReply function
+        });
+    }
+    
+    async function addDiscussion(event) {
+        event.preventDefault(); // Prevent default form submission
+        fetch("{% url 'main:add_discussion' %}", {
+            method: "POST",
+            body: new FormData(document.querySelector('#addDiscussionForm')),
+        })
+        .then(response => {
+            if (response.ok) {
+                refreshForum(); // Refresh the forum entries
+                document.getElementById("addDiscussionForm").reset(); // Reset the form
+            } else {
+                console.error('Failed to add discussion:', response.statusText);
+            }
+        });
+    }
+
+    async function addReply(event) {
+        event.preventDefault(); // Prevent default form submission
+        const form = event.target; // Get the specific reply form
+        fetch("{% url 'main:add_discussion_or_reply' %}", {
+            method: "POST",
+            body: new FormData(form),
+        })
+        .then(response => {
+            if (response.ok) {
+                refreshForum(); // Refresh the forum entries
+                form.reset(); // Reset the reply form
+            } else {
+                console.error('Failed to add reply:', response.statusText);
+            }
+        });
+    }
+
+    document.getElementById("submitDiscussionEntry").onclick = addDiscussion;
+
+    document.getElementById('discussionTalkBtn').addEventListener('click', function() {
+        const targetElement = document.getElementById('addDiscussionBox');
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    refreshForum(); // Initial call to load discussions
+</script>

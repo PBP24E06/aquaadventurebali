@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>aquaadvanturebali</title>
+{% endblock meta %}
+
+{% block content %}
+{% include "navbar.html" %}
+<div style="display: flex; flex-direction: column;">
+    {% if discussions %}
+        {% for discussion in discussions %}
+            <a href="{% url 'main:product_detail' discussion.product.id %}" style="text-decoration: none; color: inherit;">
+                <div style="display: flex; flex-direction: column; cursor: pointer;">
+                    <div>
+                        {{ discussion.product.name }} - {{ discussion.created_at|date:"Y-m-d H:i" }}
+                    </div>
+                    <div>
+                        {{ discussion.message }}<br>
+                        {% if discussion.parent %}
+                            <strong>Replying to:</strong> {{ discussion.parent.message }}<br>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+    {% else %}
+        <p>Belum Diskusi yang Dimulai</p>
+    {% endif %}
+</div>
+{% endblock content %}
