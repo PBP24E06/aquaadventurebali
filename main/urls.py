@@ -16,8 +16,7 @@ urlpatterns = [
     path("checkout/<uuid:id>", checkout, name="checkout"),
     path("request-admin/", request_admin, name="request_admin"),
     path('json/', show_json, name='show_json'),
-    path('transaction-history', view_transaction_history, name='view_transaction_history')
-
+    path('transaction-history', view_transaction_history, name='view_transaction_history'),
     path('create-product', create_product, name='create_product'),
     path('delete/<uuid:id>', delete_product, name='delete_product'),
     path('edit-product/<uuid:id>', edit_product, name='edit_product')
