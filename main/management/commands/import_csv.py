@@ -1,6 +1,6 @@
 import csv
 from django.core.management.base import BaseCommand
-from main.models import Product  # Ganti 'yourapp' dengan nama aplikasi Anda
+from main.models import Product 
 
 class Command(BaseCommand):
     help = 'Import users from a CSV file'
@@ -20,5 +20,6 @@ class Command(BaseCommand):
                     toko=row['toko'],
                     alamat=row['alamat'],
                     kontak=row['kontak'],
+                    gambar=row['gambar']
                 )
         self.stdout.write(self.style.SUCCESS('Data imported successfully!'))

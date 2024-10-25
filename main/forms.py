@@ -1,10 +1,11 @@
 from django.forms import ModelForm
 from main.models import Product, Review, Forum, Wishlist, Cart, Report
+from django import forms
 
 class ProductForm(ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'kategori', 'harga', 'toko', 'alamat', 'kontak', 'gambar']
+        fields = ["name", "kategori", "harga", "toko", "alamat", "kontak", "gambar"]
 
 
 class ReviewForm(ModelForm):
@@ -16,22 +17,26 @@ class ReviewForm(ModelForm):
 class ForumForm(ModelForm):
     class Meta:
         model = Forum
-        fields = "__all__"
+        fields = ["message"]
 
 
 class WishlistForm(ModelForm):
     class Meta:
         model = Wishlist
-        fields = "__all__"
+        fields = ["product", "user"]
 
 
-class CartForm(ModelForm):
+class CheckoutForm(ModelForm):
+    name = forms.CharField(max_length=255)
+    email = forms.CharField(max_length=255)
+    phone_number = forms.CharField(max_length=30)
+
     class Meta:
         model = Cart
-        fields = "__all__"
+        fields = ["name", "email", "phone_number"]
         
 
 class ReportForm(ModelForm):
     class Meta:
         model = Report
-        fields = "__all__"
+        fields = ["message"]
