@@ -5,25 +5,25 @@ from django import forms
 class ProductForm(ModelForm):
     class Meta:
         model = Product
-        # fields = (isi sesuai field form yang dibutuhkan)
+        fields = ["name", "kategori", "harga", "toko","alamat", "kontak", "gambar"]
 
 
-class ReviewForm(ModelForm):
-    class Meta:
-        model = Review
-        # fields = ["rating", "review_text"]
+# class ReviewForm(ModelForm):
+#     class Meta:
+#         model = Review
+#         # fields = ["rating", "review_text"]
 
 
-class ForumForm(ModelForm):
-    class Meta:
-        model = Forum
-        # fields = (isi sesuai field form yang dibutuhkan)
+# class ForumForm(ModelForm):
+#     class Meta:
+#         model = Forum
+#         # fields = (isi sesuai field form yang dibutuhkan)
 
 
-class WishlistForm(ModelForm):
-    class Meta:
-        model = Wishlist
-        # fields = (isi sesuai field form yang dibutuhkan)
+# class WishlistForm(ModelForm):
+#     class Meta:
+#         model = Wishlist
+#         # fields = (isi sesuai field form yang dibutuhkan)
 
 
 class CheckoutForm(ModelForm):
@@ -36,7 +36,7 @@ class CheckoutForm(ModelForm):
         fields = ["name", "email", "phone_number"]
         
 
-class ReportForm(ModelForm):
-    class Meta:
-        model = Report
-        # fields = (isi sesuai field form yang dibutuhkan)
+# class ReportForm(ModelForm):
+#     class Meta:
+#         model = Report
+#         # fields = (isi sesuai field form yang dibutuhkan)

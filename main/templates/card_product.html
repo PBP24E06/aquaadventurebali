@@ -15,7 +15,9 @@
     </div>
     <h1>*Untuk admin*</h1>
     <div style="display: flex; flex-direction: column; gap: 10px; width: 70px;">
-        <button style="background-color: blue; color: white;">Delete</button>
+        <a href="{% url 'main:delete_product' data.pk %}">
+            <button style="background-color: blue; color: white;">Delete</button>
+        </a>
         <button style="background-color: blue; color: white;">Edit</button>
     </div>
 </div>

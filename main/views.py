@@ -16,7 +16,7 @@ from main.models import Product, UserProfile
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
-
+from main.forms import ProductForm
 
 
 def show_main(request):
@@ -138,3 +138,20 @@ def checkout(request, id):
         'form': form
     }
     return render(request, "checkout.html", context)
+
+def create_product(request):
+  form = ProductForm(request.POST or None )
+
+  if form.is_valid() and request.method == "POST":
+    form.save()
+    return redirect('main:show_main')
+  
+  context = {'form': form}
+  return render(request, "create_product.html", context)
+
+def delete_product(request, id):
+    product = Product.objects.get(pk = id)
+    product.delete()
+    return HttpResponseRedirect(reverse('main:show_main'))
+   
+   
