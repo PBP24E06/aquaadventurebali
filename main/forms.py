@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from main.models import Product, Review, Forum, Wishlist, Cart, Report
+from main.models import Product, Review, Forum, Wishlist, Cart, Report, UserProfile
 from django import forms
 
 class ProductForm(ModelForm):
@@ -40,3 +40,8 @@ class ReportForm(ModelForm):
     class Meta:
         model = Report
         fields = ["message"]
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['profile_picture', 'alamat', 'birthdate', 'phone_number', 'bio']

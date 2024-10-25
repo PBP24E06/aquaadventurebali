@@ -17,6 +17,17 @@
                 <a href="{% url 'main:logout_user' %}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-300">
                   Logout
                 </a>
+
+                {% if user.profile.profile_picture %}
+                  <a href="{% url 'main:profile' %}">
+                      <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="w-10 h-10 rounded-full border-2 border-gray-300">
+                  </a>
+                {% else %}
+                  <a href="{% url 'main:profile' %}">
+                    <img src="./static/ikon_botak/foto_ikon.jpg" class="w-10 h-10 rounded-full border-2 border-gray-300" alt="Default Profile Icon">
+                  </a>
+                {% endif %}
+
               </div>
             {% else %} 
               <a href="{% url 'main:login_user' %}" class="text-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300">

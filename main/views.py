@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
 from main.models import Product, UserProfile, Review
-from main.forms import ReviewForm
+from main.forms import ReviewForm, UserProfileForm
 
 
 from main.models import Product, UserProfile
@@ -238,5 +238,24 @@ def edit_product(request, id):
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     return render(request, 'product_detail.html', {'data': product})
+
+@login_required
+def profile_view(request):
+    profile = get_object_or_404(UserProfile, user=request.user)
+    return render(request, 'profile.html', {'profile': profile})
+
+@login_required
+def edit_profile(request):
+    profile = request.user.profile
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('main:profile')  # Redirect ke halaman profil setelah disimpan
+    else:
+        form = UserProfileForm(instance=profile)
+
+    return render(request, 'edit_profile.html', {'form': form})
    
    
