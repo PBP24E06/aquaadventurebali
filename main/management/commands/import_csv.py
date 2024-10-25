@@ -20,6 +20,6 @@ class Command(BaseCommand):
                     toko=row['toko'],
                     alamat=row['alamat'],
                     kontak=row['kontak'],
-                    gambar=row['gambar']
+                    gambar=row['path-gambar']
                 )
         self.stdout.write(self.style.SUCCESS('Data imported successfully!'))

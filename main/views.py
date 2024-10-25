@@ -12,6 +12,10 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
+from main.models import Product, UserProfile, Review
+from main.forms import ReviewForm
+
+
 from main.models import Product, UserProfile
 from django.core.exceptions import PermissionDenied
 from functools import wraps
@@ -115,7 +119,7 @@ def make_admin(request, user_id):
 
 
   
-# @login_required
+@login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
   if request.method == 'POST':
     admin_password = request.POST.get('admin_password')
@@ -136,12 +140,46 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
   
   return render(request, 'request_admin.html', {})
 
+@login_required
+def create_review(request, id):
+  form = ReviewForm(request.POST or None)
+  product = Product.objects.get(pk=id)
+  if request.method == "POST":
+    print("POST data:", request.POST)  # Debug print
+    if form.is_valid():
+      review = form.save(commit=False)
+      review.user = request.user
+      review.product = product
+      review.save()
+      return redirect("main:show_main")
+    else:
+      print( form.errors)
+  
+  context = {
+    "form": form,
+    "product": product
+  }
+     
+  return render(request, "review_form.html", context)
+
+
 def show_json(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
 
+
 @login_required(login_url='/login')
+def all_review(request, id):
+    product = Product.objects.get(pk=id)
+    reviews = product.reviews.all()
+    context = {
+      "product": product,
+      "reviews": reviews
+    }
+    return render(request, "all_review.html", context)
+
+
 def checkout(request, id):
   product = Product.objects.get(pk=id)
   total_harga = product.harga + 10000
