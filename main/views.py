@@ -17,6 +17,7 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
 from main.forms import TransactionForm
+from .models import Transaction
 
 
 
@@ -144,15 +145,18 @@ def checkout(request, id):
   product = Product.objects.get(pk=id)
   total_harga = product.harga + 10000
 
+
   if request.method == 'POST':
       form = TransactionForm(request.POST)
       if form.is_valid():
-          # Process form data here, e.g., save the order, send an email, etc.
           transaction = form.save(commit=False)
           transaction.product = product
           transaction.user = request.user
           transaction.save()
-          return redirect('main:show_main')
+
+          messages.success(request, 'Checkout berhasil.', extra_tags='checkout_success')
+        
+          return HttpResponseRedirect(reverse('main:show_main'))
 
   else:
       form = TransactionForm()
@@ -160,6 +164,14 @@ def checkout(request, id):
   context = {
       'product': product,
       'total_harga': total_harga,
-      'form': form
+      'form': form,
   }
   return render(request, "checkout.html", context)
+
+@login_required(login_url='/login')
+def view_transaction_history(request):
+  transaction_list = Transaction.objects.filter(user=request.user)
+
+  context = {'transaction_list': transaction_list}
+
+  return render(request, "transaction_history.html", context)

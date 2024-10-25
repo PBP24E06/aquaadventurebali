@@ -27,9 +27,25 @@ class WishlistForm(ModelForm):
 
 
 class TransactionForm(ModelForm):
-    class Meta:
-        model = Transaction
-        fields = ["name", "email", "phone_number"] 
+        class Meta:
+                model = Transaction
+                fields = ["name", "email", "phone_number"] 
+
+        def __init__(self, *args, **kwargs):
+                super(TransactionForm, self).__init__(*args, **kwargs)
+                self.fields['name'].widget.attrs.update({
+                'class': 'px-4 py-2.5 bg-white text-gray-800 rounded-md w-full text-sm border-b focus:border-gray-800 outline-none',
+                'placeholder': 'Full Name'
+                })
+                self.fields['email'].widget.attrs.update({
+                'class': 'px-4 py-2.5 bg-white text-gray-800 rounded-md w-full text-sm border-b focus:border-gray-800 outline-none',
+                'placeholder': 'Email'
+                })
+                self.fields['phone_number'].widget.attrs.update({
+                'class': 'px-4 py-2.5 bg-white text-gray-800 rounded-md w-full text-sm border-b focus:border-gray-800 outline-none',
+                'placeholder': 'Phone No.'
+                })
+
 
 
 class ReportForm(ModelForm):
