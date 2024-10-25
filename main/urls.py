@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 
 
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json, create_product, delete_product
 
 
 app_name = "main"
@@ -15,5 +15,6 @@ urlpatterns = [
     path("checkout/<uuid:id>", checkout, name="checkout"),
     path("request-admin/", request_admin, name="request_admin"),
     path('json/', show_json, name='show_json'),
-
+    path('create-product', create_product, name='create_product'),
+    path('delete/<uuid:id>', delete_product, name='delete_product'),
 ]

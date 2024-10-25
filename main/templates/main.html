@@ -18,7 +18,9 @@
     {% if request.user.profile.role == "ADMIN" %}
     <div class="m-2">
         <h1>*Untuk admin*</h1>
-        <button style="background-color: blue; color: white; margin-top: 30px; margin: 20px; padding: 10px 20px; border-radius: 5px;">Tambah Produk</button>
+        <a href="{% url 'main:create_product' %}">
+            <button style="background-color: blue; color: white; margin-top: 30px; margin: 20px; padding: 10px 20px; border-radius: 5px;">Tambah Produk</button>
+        </a>
     </div>
     {% endif %}
 
