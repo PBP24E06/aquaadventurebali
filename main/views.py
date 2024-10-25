@@ -166,6 +166,8 @@ def checkout(request, id):
     }
     return render(request, "checkout.html", context)
 
+@login_required
+@admin_required
 def create_product(request):
   form = ProductForm(request.POST or None )
 
@@ -176,9 +178,25 @@ def create_product(request):
   context = {'form': form}
   return render(request, "create_product.html", context)
 
+@login_required
+@admin_required
 def delete_product(request, id):
     product = Product.objects.get(pk = id)
     product.delete()
     return HttpResponseRedirect(reverse('main:show_main'))
+
+@login_required
+@admin_required
+def edit_product(request, id):
+    product = Product.objects.get(pk = id)
+
+    form = ProductForm(request.POST or None, instance=product)
+
+    if form.is_valid and request.method == "POST":
+        form.save()
+        return HttpResponseRedirect(reverse('main:show_main'))
+
+    context = {'form': form}
+    return render(request, "edit_product.html", context)
    
    
