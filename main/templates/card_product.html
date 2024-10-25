@@ -19,9 +19,15 @@
 
         <button style="background-color: blue; color: white;">Complain</button>
     </div>
+    {% if request.user.profile.role == "ADMIN" %}
     <h1>*Untuk admin*</h1>
     <div style="display: flex; flex-direction: column; gap: 10px; width: 70px;">
-        <button style="background-color: blue; color: white;">Delete</button>
-        <button style="background-color: blue; color: white;">Edit</button>
+        <a href="{% url 'main:delete_product' data.pk %}">
+            <button style="background-color: blue; color: white;">Delete</button>
+        </a>
+        <a href="{% url 'main:edit_product' data.pk %}">
+            <button style="background-color: blue; color: white;">Edit</button>
+        </a>
     </div>
+    {% endif %}
 </div>
