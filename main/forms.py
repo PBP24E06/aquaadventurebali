@@ -1,11 +1,12 @@
 from django.forms import ModelForm
-from django.utils.html import strip_tags
 from main.models import Product, Review, Forum, Wishlist, Cart, Report
+from django.utils.html import strip_tags
+from django import forms
 
 class ProductForm(ModelForm):
     class Meta:
         model = Product
-        # fields = (isi sesuai field form yang dibutuhkan)
+        fields = ["name", "kategori", "harga", "toko", "alamat", "kontak", "gambar"]
 
 
 class ReviewForm(ModelForm):
@@ -17,7 +18,7 @@ class ReviewForm(ModelForm):
 class ForumForm(ModelForm):
     class Meta:
         model = Forum
-        fields = ["diskusi"]
+        fields = ["message"]
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -29,6 +30,7 @@ class ForumForm(ModelForm):
         comment = super().save(commit=False)
         comment.user = self.user
         comment.product = self.product
+        comment.commenter_name = self.user.username
         if self.parent:
             comment.parent = self.parent
         if commit:
@@ -44,16 +46,20 @@ class ForumForm(ModelForm):
 class WishlistForm(ModelForm):
     class Meta:
         model = Wishlist
-        # fields = (isi sesuai field form yang dibutuhkan)
+        fields = ["product", "user"]
 
 
-class CartForm(ModelForm):
+class CheckoutForm(ModelForm):
+    name = forms.CharField(max_length=255)
+    email = forms.CharField(max_length=255)
+    phone_number = forms.CharField(max_length=30)
+
     class Meta:
         model = Cart
-        # fields = (isi sesuai field form yang dibutuhkan)
+        fields = ["name", "email", "phone_number"]
         
 
 class ReportForm(ModelForm):
     class Meta:
         model = Report
-        # fields = (isi sesuai field form yang dibutuhkan)
+        fields = ["message"]

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "navbar.html" %}
+<div style="margin-top: 100px;">
+    {% include 'card_product.html' with data=product %}
+    {% include 'product_discussion.html' %}
+</div>
+{% endblock content %}

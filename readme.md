@@ -11,12 +11,12 @@
 ## Deskripsi Aplikasi
 Aqua Adventure Bali adalah web aplikasi untuk mencari informasi mengenai peralatan snorkeling dan toko yang menjualnya di Bali. Kami mendapat inspirasi karena Bali merupakan salah satu destinasi wisata di Indonesia yang terkenal sampai ke mancanegara dan di Bali terdapat banyak sekali pantai yang menyediakan wisata untuk snorkling. Aplikasi ini bermanfaat bagi para wisatawan ataupun warga lokal Bali yang memiliki minat dalam olahraga snorkeling untuk mencari informasi mengenai peralatan snorkeling serta tempat menjualnya.
 ## Daftar Modul yang Akan Diimplementasikan
-* Product
-* Ulasan
-* Wishlist
-* Forum
-* Checkout
-* Complain/pengaduan
+* Product, Paima
+* Ulasan, William
+* Wishlist, Aisyah
+* Forum, Atha
+* Checkout, Mario
+* Complain/pengaduan, Rifqi
 
 ## Sumber Initial Dataset
 

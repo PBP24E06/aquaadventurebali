@@ -1,14 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <div>
-        <h1>Aqua Adventure Bali</h1>
-        
+{% extends "base.html" %}
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="pt-20">
+    <h1 class="text-3xl font-bold">Aqua Adventure Bali</h1>
+
+    <!-- Customer section -->
+    {% if request.user.profile.role == "CUSTOMER" %}
+    <div class="m-2 cursor-pointer">
+        <a href="{% url 'main:request_admin' %}" class="btn btn-primary" style="background-color: blue; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            Request Admin Access
+        </a>
     </div>
-</body>
-</html>
+    {% endif %}
+
+    <!-- Admin section -->
+    {% if request.user.profile.role == "ADMIN" %}
+    <div class="m-2">
+        <h1>*Untuk admin*</h1>
+        <a href="{% url 'main:create_product' %}">
+            <button style="background-color: blue; color: white; margin-top: 30px; margin: 20px; padding: 10px 20px; border-radius: 5px;">Tambah Produk</button>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Filter Form -->
+    <form method="get" class="flex items-center space-x-4 mb-6 mt-4">
+        <!-- Category Filter -->
+        <div>
+            <label for="kategori" class="block text-sm font-medium text-gray-700">Kategori</label>
+            <select id="kategori" name="kategori" class="block w-full p-2 border border-gray-300 rounded-md">
+                <option value="">All</option>
+                {% for kategori in category_list %}
+                    <option value="{{ kategori }}" {% if request.GET.kategori == kategori %}selected{% endif %}>
+                        {{ kategori }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Price Filter -->
+        <div>
+            <label for="min_price" class="block text-sm font-medium text-gray-700">Harga Min</label>
+            <input type="number" name="min_price" id="min_price" class="block w-full p-2 border border-gray-300 rounded-md" value="{{ request.GET.min_price }}">
+        </div>
+
+        <div>
+            <label for="max_price" class="block text-sm font-medium text-gray-700">Harga Max</label>
+            <input type="number" name="max_price" id="max_price" class="block w-full p-2 border border-gray-300 rounded-md" value="{{ request.GET.max_price }}">
+        </div>
+
+        <!-- Filter Button -->
+        <div class="pt-5">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Filter</button>
+        </div>
+    </form>
+
+    <!-- Products Section -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;">
+        {% for data in data %}
+            <a href="{% url 'main:product_detail' data.id %}">
+                {% include 'card_product.html' with data=data %}
+            </a>
+        {% empty %}
+            <p>No products found.</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock content %}

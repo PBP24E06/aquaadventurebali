@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block meta %}
 <title>aquaadvanturebali</title>
@@ -6,25 +7,72 @@
 
 {% block content %}
 {% include "navbar.html" %}
-<div style="display: flex; flex-direction: column;">
-    {% if discussions %}
-        {% for discussion in discussions %}
-            <a href="{% url 'main:product_detail' discussion.product.id %}" style="text-decoration: none; color: inherit;">
-                <div style="display: flex; flex-direction: column; cursor: pointer;">
-                    <div>
-                        {{ discussion.product.name }} - {{ discussion.created_at|date:"Y-m-d H:i" }}
+
+<div style="padding: 20px;">
+    <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 20px;">Diskusi Pengguna</h2>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+        {% if discussions %}
+            {% for discussion in discussions %}
+                <div style="background-color: #f9f9f9; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="display: flex; gap: 15px; align-items: flex-start;">
+                            <div>
+                                <strong>{{ discussion.product.name }}</strong><br>
+                                <span style="font-size: 0.9rem; color: #777;">{{ discussion.created_at|date:"Y-m-d H:i" }}</span>
+                            </div>
+                        </div>
+                        <p>{{ discussion.product.id }}</p>
+                        <a href="{% url 'main:product_detail' discussion.product.id %}" style="font-size: 0.9rem; color: #32c866; font-weight: bold;">Lihat Produk</a>
                     </div>
-                    <div>
-                        {{ discussion.message }}<br>
+
+                    <div style="margin-top: 15px;">
+                        <p>{{ discussion.message }}</p>
+                        
                         {% if discussion.parent %}
-                            <strong>Replying to:</strong> {{ discussion.parent.message }}<br>
+                            <div style="background-color: #f0f0f0; border-left: 4px solid #32c866; padding: 10px; margin-top: 10px;">
+                                <strong>Replying to:</strong> {{ discussion.parent.user.username }}<br>
+                                <span style="font-size: 0.9rem;">{{ discussion.parent.message }}</span>
+                            </div>
+                        {% endif %}
+
+                        {% if discussion.user == request.user %}
+                        <div style="margin-top: 10px;">
+                            <button class="delete-btn" data-id="{{ discussion.id }}" style="background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;">
+                                Delete
+                            </button>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
-            </a>
-        {% endfor %}
-    {% else %}
-        <p>Belum Diskusi yang Dimulai</p>
-    {% endif %}
+            {% endfor %}
+        {% else %}
+            <p>Belum ada diskusi yang dimulai.</p>
+        {% endif %}
+    </div>
 </div>
+
+<script>
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const discussionId = this.getAttribute('data-id');
+            const csrftoken = "{{ csrf_token }}";  
+            
+            fetch(`/delete_discussion/${discussionId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();  
+                } else {
+                    alert('Gagal menghapus komentar.');
+                }
+            });
+        });
+    });
+</script>
+
 {% endblock content %}
