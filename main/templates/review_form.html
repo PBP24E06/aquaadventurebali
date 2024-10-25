@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="mt-40 px-4 justify-center">
+    <div class="w-full max-w-md mx-auto px-4 border-black border rounded-md p-8 px-10">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="flex flex-col gap-y-px">
+                <div>
+                    <label for="rating" class="items-center">Rating: </label>
+                    <span id="ratingnumber">5.0</span>
+                </div>
+                <div>
+                    <input type="range" name="rating" id="rating" min="1" max="5" step="0.5" value="5" class="h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" oninput="updateRating(this.value)">
+                </div>
+                <br>
+
+                <label for="review_text">Berikan ulasan untuk produk ini</label>
+                <textarea name="review_text" id="review_text" cols="30" rows="5" class="mt-2 border border-black rounded-md border-gray p-2 placeholder:text-sm placeholder:text-gray-400 text-sm" placeholder="Tuliskan pengalaman anda menggunakan produk ini" required></textarea>
+
+
+                <div class="flex justify-end mt-20 gap-x-4">
+                    <a href="{% url 'main:show_main' %}" class="w-24 border border-gray bg-gray-500 text-white font-semibold py-2 px-4 rounded hover:bg-gray-600 cursor-pointer text-center">Cancel</a>
+                    <input class="w-20 items-center border-gray bg-green-600 text-white font-semibold py-2 px-4 rounded hover:bg-green-700 cursor-pointer" type="submit" value="Kirim">
+                </div>
+            </div>
+        </form>    
+    </div>
+</div>
+
+<script>
+    function updateRating(value) {
+        document.getElementById('ratingnumber').textContent = parseFloat(value).toFixed(1);
+    }
+</script>
+
+{% endblock content %}
