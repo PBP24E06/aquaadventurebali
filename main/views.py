@@ -16,12 +16,39 @@ from main.models import Product, UserProfile
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
+from main.forms import CheckoutForm
 
 
 
 def show_main(request):
-    product = Product.objects.all()
-    return render(request, "main.html", {'data':product})
+    products = Product.objects.all()
+
+    # Filtering by category
+    kategori_filter = request.GET.get('kategori')
+
+    if kategori_filter:
+        products = products.filter(kategori=kategori_filter)
+
+    # Filtering by price range
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+
+    if min_price:
+        products = products.filter(harga__gte=min_price)
+
+    if max_price:
+        products = products.filter(harga__lte=max_price)
+
+    print(f"kategori: {kategori_filter}, min: {min_price}, max: {max_price}")
+
+    print(f"Size: {products.count()}")
+
+    context = {
+       "data": products,
+       "category_list": ['Aksesoris','Boots','Camera','Fin','Fins','Glove','Gloves', 'Hood','Jacket','Mask','Others','Pants','Regulator','Snorkel','Socks','Wetsuit']
+    }
+    
+    return render(request, "main.html", context)
 
 def login_user(request):
   if request.method == 'POST':
@@ -138,3 +165,4 @@ def checkout(request, id):
         'form': form
     }
     return render(request, "checkout.html", context)
+

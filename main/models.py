@@ -30,8 +30,7 @@ class Product(models.Model):
     toko = models.CharField(max_length=255)
     alamat = models.TextField()
     kontak = models.CharField(max_length=255)
-    gambar = models.ImageField()
-    # admin = models.ForeignKey(User, on_delete=models.CASCADE)
+    gambar = models.URLField()
 
     def average_rating(self):
         reviews = self.reviews.all() 
@@ -71,3 +70,4 @@ class Report(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="report", on_delete=models.CASCADE)  # Relasi balik ke user
     message = models.TextField()
+
