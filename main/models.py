@@ -65,6 +65,7 @@ class Transaction(models.Model):
     name = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=255)
+    checkout_time = models.DateTimeField(auto_now_add=True)
 
 
 class Report(models.Model):
