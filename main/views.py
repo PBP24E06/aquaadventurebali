@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
-from main.models import Product, UserProfile, Review
+from main.models import Product, UserProfile, Review, Transaction
 from main.forms import ReviewForm
 
 
@@ -21,7 +21,6 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
 from main.forms import TransactionForm
-from .models import Transaction
 from main.forms import ProductForm
 
 
@@ -179,23 +178,20 @@ def all_review(request, id):
     }
     return render(request, "all_review.html", context)
 
-
+@login_required(login_url='/login')
 def checkout(request, id):
   product = Product.objects.get(pk=id)
   total_harga = product.harga + 10000
 
-
   if request.method == 'POST':
       form = TransactionForm(request.POST)
       if form.is_valid():
+          # Process form data here, e.g., save the order, send an email, etc.
           transaction = form.save(commit=False)
           transaction.product = product
           transaction.user = request.user
           transaction.save()
-
-          messages.success(request, 'Checkout berhasil.', extra_tags='checkout_success')
-        
-          return HttpResponseRedirect(reverse('main:show_main'))
+          return redirect('main:show_main')
 
   else:
       form = TransactionForm()
@@ -204,10 +200,9 @@ def checkout(request, id):
   context = {
       'product': product,
       'total_harga': total_harga,
-      'form': form,
+      'form': form
   }
   return render(request, "checkout.html", context)
-
 
 @login_required(login_url='/login')
 def view_transaction_history(request):
@@ -250,4 +245,3 @@ def edit_product(request, id):
     context = {'form': form}
     return render(request, "edit_product.html", context)
    
-
