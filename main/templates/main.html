@@ -144,33 +144,35 @@
     }
 
     async function refreshProduct() {
-        document.getElementById("card_product").innerHTML = "";
-        document.getElementById("card_product").style = "";
-        const product = await getProduct();
-        let htmlString = "";
-        let styleString = "";
+    document.getElementById("card_product").innerHTML = "";
+    document.getElementById("card_product").style = "";
+    const product = await getProduct();
+    let htmlString = "";
+    let styleString = "";
 
-        if(product.length == 0){
-            styleString = "display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;";
-            htmlString = "<p>No product found.</p>";
-        }else{
-            styleString = "display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;"
-            product.forEach((item) => {
-                htmlString += `
-                <div style="border: 1px solid #ccc; border-radius: 10px; padding: 15px; margin: 10px; width: 200px; background-color: lightblue;">
-                    <img src="${item.fields.gambar}" alt="${item.fields.name}" style="width: 100%; height: auto; border-radius: 10px;"></img>
-                    <h3><strong>${item.fields.name}</strong></h3>
-                    <p><strong>Kategori:</strong> ${item.fields.kategori}</p>
-                    <p><strong>Harga:</strong> ${ item.fields.harga }</p>
-                    
-                </div>
-                `
-            });
-        }
-        document.getElementById("card_product").style = styleString;
-        document.getElementById("card_product").innerHTML = htmlString;
-        
+    if (product.length == 0) {
+        styleString = "display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;";
+        htmlString = "<p>No product found.</p>";
+    } else {
+        styleString = "display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;"
+        product.forEach((item) => {
+            htmlString += `
+                <a href="" style="text-decoration: none; color: inherit;">
+                    <div style="border: 1px solid #ccc; border-radius: 10px; padding: 15px; margin: 10px; width: 200px; background-color: lightblue;">
+                        <img src="${item.fields.gambar}" alt="${item.fields.name}" style="width: 100%; height: auto; border-radius: 10px;"></img>
+                        <h3><strong>${item.fields.name}</strong></h3>
+                        <p><strong>Kategori:</strong> ${item.fields.kategori}</p>
+                        <p><strong>Harga:</strong> ${item.fields.harga}</p>
+                        <a href="/product-detail/${item.pk}/" style="text-decoration: none; display: inline-block; margin-top: 10px; padding: 10px 15px; background-color: #28a745; color: white; border-radius: 5px;">View Product</a>
+                    </div>
+                </a>
+            `;
+        });
     }
+
+    document.getElementById("card_product").innerHTML = htmlString;
+    document.getElementById("card_product").setAttribute("style", styleString);
+}
     refreshProduct();
 
     const modal = document.getElementById('crudModal');
