@@ -35,9 +35,6 @@ def show_main(request):
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
-    for product in products:
-        product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
-
     if min_price:
         products = products.filter(harga__gte=min_price)
 
@@ -45,8 +42,10 @@ def show_main(request):
         products = products.filter(harga__lte=max_price)
 
     print(f"kategori: {kategori_filter}, min: {min_price}, max: {max_price}")
-
     print(f"Size: {products.count()}")
+
+    for product in products:
+        product.formatted_harga = f"Rp {format(product.harga, ',').replace(',', '.')}"
 
     context = {
        "data": products,

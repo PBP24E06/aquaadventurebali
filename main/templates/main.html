@@ -156,14 +156,22 @@
     } else {
         styleString = "display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;"
         product.forEach((item) => {
+
+            const productDetailUrl = `/product-detail/${item.pk}/`;
+
             htmlString += `
-                <a href="" style="text-decoration: none; color: inherit;">
-                    <div style="border: 1px solid #ccc; border-radius: 10px; padding: 15px; margin: 10px; width: 200px; background-color: lightblue;">
-                        <img src="${item.fields.gambar}" alt="${item.fields.name}" style="width: 100%; height: auto; border-radius: 10px;"></img>
-                        <h3><strong>${item.fields.name}</strong></h3>
-                        <p><strong>Kategori:</strong> ${item.fields.kategori}</p>
-                        <p><strong>Harga:</strong> ${item.fields.harga}</p>
-                        <a href="/product-detail/${item.pk}/" style="text-decoration: none; display: inline-block; margin-top: 10px; padding: 10px 15px; background-color: #28a745; color: white; border-radius: 5px;">View Product</a>
+                <a href="${productDetailUrl}">
+                    <div style="width: 200px; height: 320px; border: 1px solid #ccc; border-radius: 10px; padding: 15px; margin: 10px; background-color: #b3d9ff; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div style="height: 160px; overflow: hidden; border-radius: 10px; margin-bottom: 10px;">
+                            <img src="${item.fields.gambar}" alt="${item.fields.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div style="display: flex; flex-direction: column;">
+                            <div style="background-color: #99ccff; color: #004080; font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 20px; display: inline-block; margin-bottom: 10px;">
+                                ${item.fields.kategori}
+                            </div>
+                            <h3 style=" font-size: 18px; margin-bottom: 5px;">${item.fields.name}</h3>
+                            <p style="font-size: 14px; font-weight: bold; margin-top: auto; font-family: sans-serif;">Rp ${item.fields.harga}</p>
+                        </div>
                     </div>
                 </a>
             `;
