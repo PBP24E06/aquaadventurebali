@@ -23,6 +23,6 @@ urlpatterns = [
     path('create-product', create_product, name='create_product'),
     path('delete/<uuid:id>', delete_product, name='delete_product'),
     path('edit-product/<uuid:id>', edit_product, name='edit_product'),
-    path('checkout-by-ajax/<uuid:id>', checkout_by_ajax, name='checkout_by_ajax'),
+    path('checkout-by-ajax/<uuid:id>/', checkout_by_ajax, name='checkout_by_ajax'),
     path('get_product_data_for_checkout/<uuid:id>/', get_product_data_for_checkout, name='get_product_data_for_checkout'),
 ]

@@ -17,7 +17,7 @@
             <button style="background-color: blue; color: white;">Checkout</button>
         </a>
         {% if request.user.is_authenticated %}
-            <button data-modal-target="crudModal" data-modal-toggle="crudModal" class="btn bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105" onclick="showModal('{{ data.id }}');">
+            <button data-modal-target="crudModal" data-modal-toggle="crudModal" class="btn bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105" onclick="showModal('{{ data.pk }}');">
                 Checkout by AJAX
             </button>
         {% endif %}
@@ -76,7 +76,7 @@
                     <h3 class="text-base text-gray-800  font-semibold mb-4">Enter Details</h3>
                     <div class="space-y-3">
                         <div class="relative flex items-center">
-                            <input type="text" placeholder="Full Name"
+                            <input type="text" name="name" placeholder="Full Name"
                                 class="px-4 py-2.5 bg-white text-gray-800 rounded-md w-full text-sm border-b focus:border-gray-800 outline-none" />
                             <svg xmlns="http://www.w3.org/2000/svg" fill="#bbb" stroke="#bbb" class="w-4 h-4 absolute right-4"
                                 viewBox="0 0 24 24">
@@ -88,7 +88,7 @@
                         </div>
     
                         <div class="relative flex items-center">
-                            <input type="email" placeholder="Email"
+                            <input type="email" name="email" placeholder="Email"
                                 class="px-4 py-2.5 bg-white text-gray-800 rounded-md w-full text-sm border-b focus:border-gray-800 outline-none" />
                             <svg xmlns="http://www.w3.org/2000/svg" fill="#bbb" stroke="#bbb" class="w-4 h-4 absolute right-4"
                                 viewBox="0 0 682.667 682.667">
@@ -109,7 +109,7 @@
                         </div>
     
                         <div class="relative flex items-center">
-                            <input type="number" placeholder="Phone No."
+                            <input type="number" name="phone_number" placeholder="Phone No."
                                 class="px-4 py-2.5 bg-white text-gray-800 rounded-md w-full text-sm border-b focus:border-gray-800 outline-none" />
                             <svg fill="#bbb" class="w-4 h-4 absolute right-4" viewBox="0 0 64 64">
                                 <path
@@ -131,16 +131,13 @@
 </div>
 
 <script>
-    async function getTransactionList(){
-      return fetch("{% url 'main:show_json_transaction' %}").then((res) => res.json())
-    }
-
     const modal = document.getElementById('crudModal');
     const modalContent = document.getElementById('crudModalContent');
 
     function showModal(productId) {
         const modal = document.getElementById('crudModal');
         const modalContent = document.getElementById('crudModalContent');
+        const form = document.getElementById('checkoutForm');
 
         fetch(`/get_product_data_for_checkout/${productId}/`)
             .then(response => response.json())
@@ -148,12 +145,14 @@
                 document.querySelector("#crudModal img").src = data.gambar;
                 document.querySelector("#crudModal .text-gray-800").innerText = data.name;
                 document.querySelector("#crudModal .text-lg").innerText = "Rp " + data.harga;
+
+                form.dataset.productId = productId; // Set product ID on the form
             });
 
         modal.classList.remove('hidden'); 
         setTimeout(() => {
-        modalContent.classList.remove('opacity-0', 'scale-95');
-        modalContent.classList.add('opacity-100', 'scale-100');
+            modalContent.classList.remove('opacity-0', 'scale-95');
+            modalContent.classList.add('opacity-100', 'scale-100');
         }, 50); 
     }
 
@@ -165,7 +164,7 @@
         modalContent.classList.add('opacity-0', 'scale-95');
 
         setTimeout(() => {
-        modal.classList.add('hidden');
+            modal.classList.add('hidden');
         }, 150); 
     }
 
@@ -173,9 +172,12 @@
     document.getElementById("closeModalBtn").addEventListener("click", hideModal);
 
     function checkout() {
-        fetch("{% url 'main:checkout_by_ajax' data.pk %}", {
-        method: "POST",
-        body: new FormData(document.querySelector('#checkoutForm')),
+        const form = document.querySelector('#checkoutForm');
+        const productId = form.dataset.productId; // Get the specific product ID from the dataset
+
+        fetch(`/checkout-by-ajax/${productId}/`, {  // Updated URL to include specific product ID
+            method: "POST",
+            body: new FormData(form),
         })
         .then(response => {
             if (response.ok) {
@@ -184,14 +186,12 @@
                 throw new Error('Transaction failed.');
             }
         })
-
         .then(data => {
             hideModal(); // Close the modal after success
         })
+        .catch(error => console.error("Checkout error:", error));
 
-        document.getElementById("checkoutForm").reset(); 
-        document.querySelector("[data-modal-toggle='crudModal']").click();
-
+        form.reset(); 
         return false;
     }
     document.getElementById("checkoutForm").addEventListener("submit", (e) => {
