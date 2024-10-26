@@ -1,10 +1,7 @@
 from django.contrib import admin
 from django.urls import path
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, product_detail,edit_profile, profile_view, create_review_by_ajax, get_product_data_for_checkout, add_product_ajax
 
-
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, add_product_ajax, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout
-
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, delete_product, edit_product, all_review, request_admin, create_review, product_detail, profile_view, edit_profile
 
 
 app_name = "main"
@@ -29,4 +26,5 @@ urlpatterns = [
     path('product-detail/<uuid:id>', product_detail, name='product_detail'),
     path('profile/', profile_view, name='profile'),
     path('edit_profile/', edit_profile, name='edit_profile'),
+    path('create-review-by-ajax/<uuid:id>', create_review_by_ajax, name="create-review-by-ajax"),
 ]
