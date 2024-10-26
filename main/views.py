@@ -45,7 +45,7 @@ def show_main(request):
     print(f"Size: {products.count()}")
 
     for product in products:
-        product.formatted_harga = f"Rp {format(product.harga, ',').replace(',', '.')}"
+        product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
 
     context = {
        "data": products,
