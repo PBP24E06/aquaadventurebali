@@ -1,0 +1,212 @@
+<div style="padding: 20px; max-width: 1200px; margin: auto;">
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Bagian Gambar Produk -->
+        <div style="flex: 1; min-width: 300px;">
+            <img src="{{ data.gambar }}" alt="{{ data.name }}" style="width: 100%; height: auto; border-radius: 10px;">
+        </div>
+        
+        <!-- Bagian Informasi Produk -->
+        <div style="flex: 2; min-width: 300px;">
+            <h1 style="font-size: 2em; color: #333;"><strong>{{ data.name }}</strong></h1>
+            <p style="color: #888; font-size: 1.1em;"><strong>Kategori:</strong> {{ data.kategori }}</p>
+            
+            <!-- Harga -->
+            <p style="font-size: 1.8em; color: #333; font-weight: bold; margin: 15px 0;">Rp {{ data.harga }}</p>
+            
+            <!-- Detail Toko dan Kontak -->
+            <p style="margin: 5px 0; color: #666;"><strong>Toko:</strong> {{ data.toko }}</p>
+            <p style="margin: 5px 0; color: #666;"><strong>Alamat:</strong> {{ data.alamat }}</p>
+            <p style="margin: 5px 0; color: #666;"><strong>Kontak:</strong> {{ data.kontak }}</p>
+            
+            <!-- Tombol Aksi -->
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <a href="{% url 'main:all_review' data.pk %}" style="text-decoration: none;">
+                    <button style="background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Ulasan</button>
+                </a>
+                
+                <a href="{% url 'main:checkout' data.pk %}" style="text-decoration: none;">
+                    <button style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Checkout</button>
+                </a>
+                
+                <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
+            </div>
+
+            <!-- Tombol Khusus Admin -->
+            {% if request.user.profile.role == "ADMIN" %}
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <a href="{% url 'main:delete_product' data.pk %}" style="text-decoration: none;">
+                        <button style="background-color: #dc3545; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Delete</button>
+                    </a>
+                    <a href="{% url 'main:edit_product' data.pk %}" style="text-decoration: none;">
+                        <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Edit</button>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div id="crudModalCheckout" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 w-full flex items-center justify-center bg-gray-800 bg-opacity-50 overflow-x-hidden overflow-y-auto transition-opacity duration-300 ease-out">
+        <div id="crudModalCheckoutContent" class="relative bg-white rounded-lg shadow-lg w-5/6 sm:w-3/4 md:w-1/2 lg:w-1/3 mx-4 sm:mx-0 transform scale-95 opacity-0 transition-transform transition-opacity duration-300 ease-out">
+          <!-- Modal header -->
+          <div class="flex items-center justify-between p-4 border-b rounded-t">
+            <h3 class="text-xl font-semibold text-gray-900">
+              Checkout
+            </h3>
+            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center" id="closeModalBtnCheckout">
+              <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="sr-only">Close modal</span>
+            </button>
+          </div>
+          <!-- Modal body -->
+          <div class="px-6 py-4 space-y-6 form-style">
+            <div class="grid md:grid-cols-3 gap-8 mt-16">
+                <div class="md:col-span-2 space-y-4">
+                    <div class="grid grid-cols-3 items-start gap-4">
+                        <div class="col-span-3 flex items-start gap-4">
+                            <div class="w-28 h-28 max-sm:w-24 max-sm:h-24 shrink-0 bg-gray-100 p-2 rounded-md">
+                                <img src='{{ data.gambar }}' class="w-full h-full object-contain" />
+                            </div>
+            
+                            <div class="flex flex-col justify-between flex-grow">
+                                <h3 class="text-base font-bold text-gray-800">{{ data.name }}</h3>
+                                <h4 class="text-lg max-sm:text-base font-bold text-gray-800">Rp {{ data.harga }}</h4>
+                            </div>
+                        </div>
+
+                    </div>
+            
+                    <hr class="border-gray-300"/>
+                </div>
+            </div>
+            <form id="checkoutForm">
+                <div>
+                    <h3 class="text-base text-gray-800  font-semibold mb-4">Enter Details</h3>
+                    <div class="space-y-3">
+                        <div class="relative flex items-center">
+                            <input type="text" name="name" placeholder="Full Name"
+                                class="px-4 py-2.5 bg-white text-gray-800 rounded-md w-full text-sm border-b focus:border-gray-800 outline-none" />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="#bbb" stroke="#bbb" class="w-4 h-4 absolute right-4"
+                                viewBox="0 0 24 24">
+                                <circle cx="10" cy="7" r="6" data-original="#000000"></circle>
+                                <path
+                                    d="M14 15H6a5 5 0 0 0-5 5 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 5 5 0 0 0-5-5zm8-4h-2.59l.3-.29a1 1 0 0 0-1.42-1.42l-2 2a1 1 0 0 0 0 1.42l2 2a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42l-.3-.29H22a1 1 0 0 0 0-2z"
+                                    data-original="#000000"></path>
+                            </svg>
+                        </div>
+    
+                        <div class="relative flex items-center">
+                            <input type="email" name="email" placeholder="Email"
+                                class="px-4 py-2.5 bg-white text-gray-800 rounded-md w-full text-sm border-b focus:border-gray-800 outline-none" />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="#bbb" stroke="#bbb" class="w-4 h-4 absolute right-4"
+                                viewBox="0 0 682.667 682.667">
+                                <defs>
+                                    <clipPath id="a" clipPathUnits="userSpaceOnUse">
+                                        <path d="M0 512h512V0H0Z" data-original="#000000"></path>
+                                    </clipPath>
+                                </defs>
+                                <g clip-path="url(#a)" transform="matrix(1.33 0 0 -1.33 0 682.667)">
+                                    <path fill="none" stroke-miterlimit="10" stroke-width="40"
+                                        d="M452 444H60c-22.091 0-40-17.909-40-40v-39.446l212.127-157.782c14.17-10.54 33.576-10.54 47.746 0L492 364.554V404c0 22.091-17.909 40-40 40Z"
+                                        data-original="#000000"></path>
+                                    <path
+                                        d="M472 274.9V107.999c0-11.027-8.972-20-20-20H60c-11.028 0-20 8.973-20 20V274.9L0 304.652V107.999c0-33.084 26.916-60 60-60h392c33.084 0 60 26.916 60 60v196.653Z"
+                                        data-original="#000000"></path>
+                                </g>
+                            </svg>
+                        </div>
+    
+                        <div class="relative flex items-center">
+                            <input type="number" name="phone_number" placeholder="Phone No."
+                                class="px-4 py-2.5 bg-white text-gray-800 rounded-md w-full text-sm border-b focus:border-gray-800 outline-none" />
+                            <svg fill="#bbb" class="w-4 h-4 absolute right-4" viewBox="0 0 64 64">
+                                <path
+                                    d="m52.148 42.678-6.479-4.527a5 5 0 0 0-6.963 1.238l-1.504 2.156c-2.52-1.69-5.333-4.05-8.014-6.732-2.68-2.68-5.04-5.493-6.73-8.013l2.154-1.504a4.96 4.96 0 0 0 2.064-3.225 4.98 4.98 0 0 0-.826-3.739l-4.525-6.478C20.378 10.5 18.85 9.69 17.24 9.69a4.69 4.69 0 0 0-1.628.291 8.97 8.97 0 0 0-1.685.828l-.895.63a6.782 6.782 0 0 0-.63.563c-1.092 1.09-1.866 2.472-2.303 4.104-1.865 6.99 2.754 17.561 11.495 26.301 7.34 7.34 16.157 11.9 23.011 11.9 1.175 0 2.281-.136 3.29-.406 1.633-.436 3.014-1.21 4.105-2.302.199-.199.388-.407.591-.67l.63-.899a9.007 9.007 0 0 0 .798-1.64c.763-2.06-.007-4.41-1.871-5.713z"
+                                    data-original="#000000"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </form>
+          </div>
+          <!-- Modal footer -->
+          <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 p-6 border-t border-gray-200 rounded-b justify-center md:justify-end">
+            <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg" id="cancelButtonCheckout">Cancel</button>
+            <button type="submit" id="submitCheckout" form="checkoutForm" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Checkout</button>
+          </div>
+        </div>
+      </div>
+</div>
+
+
+
+<script>
+    const modalCheckout = document.getElementById('crudModalCheckout');
+    const modalCheckoutContent = document.getElementById('crudModalCheckoutContent');
+
+    function showModalCheckout(productId) {
+        const modalCheckout = document.getElementById('crudModalCheckout');
+        const modalCheckoutContent = document.getElementById('crudModalCheckoutContent');
+        const form = document.getElementById('checkoutForm');
+
+        fetch(`/get_product_data_for_checkout/${productId}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector("#crudModalCheckout img").src = data.gambar;
+                document.querySelector("#crudModalCheckout .text-gray-800").innerText = data.name;
+                document.querySelector("#crudModalCheckout .text-lg").innerText = "Rp " + data.harga;
+
+                form.dataset.productId = productId; // Set product ID on the form
+            });
+
+        modal.classList.remove('hidden'); 
+        setTimeout(() => {
+            modalCheckoutContent.classList.remove('opacity-0', 'scale-95');
+            modalCheckoutContent.classList.add('opacity-100', 'scale-100');
+        }, 50); 
+    }
+
+    function hideModalCheckout() {
+        const modal = document.getElementById('crudModalCheckout');
+        const modalContent = document.getElementById('crudModalCheckoutContent');
+
+        modalContent.classList.remove('opacity-100', 'scale-100');
+        modalContent.classList.add('opacity-0', 'scale-95');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 150); 
+    }
+
+    document.getElementById("cancelButtonCheckout").addEventListener("click", hideModalCheckout);
+    document.getElementById("closeModalBtnCheckout").addEventListener("click", hideModalCheckout);
+
+    function checkout() {
+        const form = document.querySelector('#checkoutForm');
+        const productId = form.dataset.productId; // Get the specific product ID from the dataset
+
+        fetch(`/checkout-by-ajax/${productId}/`, {  // Updated URL to include specific product ID
+            method: "POST",
+            body: new FormData(form),
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json(); // Process the response as JSON
+            } else {
+                throw new Error('Transaction failed.');
+            }
+        })
+        .then(data => {
+            hideModalCheckout(); // Close the modal after success
+        })
+        .catch(error => console.error("Checkout error:", error));
+
+        form.reset(); 
+        return false;
+    }
+    document.getElementById("checkoutForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        checkout();
+    })
+
+</script>
