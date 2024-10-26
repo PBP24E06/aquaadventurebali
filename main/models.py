@@ -40,7 +40,7 @@ class Product(models.Model):
     toko = models.CharField(max_length=255)
     alamat = models.TextField()
     kontak = models.CharField(max_length=255)
-    gambar = models.ImageField()
+    gambar = models.ImageField(upload_to="static/image/")
 
     def average_rating(self):
         reviews = self.reviews.all() 

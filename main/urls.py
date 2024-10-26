@@ -2,9 +2,9 @@ from django.contrib import admin
 from django.urls import path
 
 
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, create_product, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, add_product_ajax, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout
 
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, create_product, delete_product, edit_product, all_review, request_admin, create_review, product_detail, profile_view, edit_profile
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, delete_product, edit_product, all_review, request_admin, create_review, product_detail, profile_view, edit_profile
 
 
 app_name = "main"
@@ -21,7 +21,7 @@ urlpatterns = [
     path('json-transaction/', show_json_transaction, name='show_json_transaction'),
     path('transaction-history', view_transaction_history, name='view_transaction_history'),
     path("all-review/<uuid:id>", all_review, name="all_review"),
-    path('create-product/', create_product, name='create_product'),
+    path('add-product-ajax/', add_product_ajax, name='add_product_ajax'),
     path('delete/<uuid:id>', delete_product, name='delete_product'),
     path('edit-product/<uuid:id>', edit_product, name='edit_product'),
     path('checkout-by-ajax/<uuid:id>/', checkout_by_ajax, name='checkout_by_ajax'),
