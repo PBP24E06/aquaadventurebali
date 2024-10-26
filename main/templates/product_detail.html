@@ -1,8 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+
+
 <div style="padding: 20px; max-width: 1200px; margin: auto;">
     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
         <!-- Bagian Gambar Produk -->
         <div style="flex: 1; min-width: 300px;">
-            <img src="{{ data.gambar }}" alt="{{ data.name }}" style="width: 100%; height: auto; border-radius: 10px;">
+            <img src="{{ data.gambar.url }}" alt="{{ data.name }}" style="width: 100%; height: auto; border-radius: 10px;">
         </div>
         
         <!-- Bagian Informasi Produk -->
@@ -24,9 +28,7 @@
                     <button style="background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Ulasan</button>
                 </a>
                 
-                <a href="{% url 'main:checkout' data.pk %}" style="text-decoration: none;">
-                    <button style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Checkout</button>
-                </a>
+                <button data-modal-target="crudModalCheckout" data-modal-toggle="crudModalCheckout" style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;" onclick="showModalCheckout('{{ data.pk }}');">Checkout</button>
                 
                 <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
             </div>
@@ -44,8 +46,9 @@
             {% endif %}
         </div>
     </div>
+
     <div id="crudModalCheckout" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 w-full flex items-center justify-center bg-gray-800 bg-opacity-50 overflow-x-hidden overflow-y-auto transition-opacity duration-300 ease-out">
-        <div id="crudModalCheckoutContent" class="relative bg-white rounded-lg shadow-lg w-5/6 sm:w-3/4 md:w-1/2 lg:w-1/3 mx-4 sm:mx-0 transform scale-95 opacity-0 transition-transform transition-opacity duration-300 ease-out">
+        <div id="crudModalContentCheckout" class="relative bg-white rounded-lg shadow-lg w-5/6 sm:w-3/4 md:w-1/2 lg:w-1/3 mx-4 sm:mx-0 transform scale-95 opacity-0 transition-transform transition-opacity duration-300 ease-out">
           <!-- Modal header -->
           <div class="flex items-center justify-between p-4 border-b rounded-t">
             <h3 class="text-xl font-semibold text-gray-900">
@@ -136,17 +139,20 @@
           </div>
         </div>
       </div>
+    
 </div>
+
+
 
 
 
 <script>
     const modalCheckout = document.getElementById('crudModalCheckout');
-    const modalCheckoutContent = document.getElementById('crudModalCheckoutContent');
+    const modalContentCheckout = document.getElementById('crudModalContentCheckout');
 
     function showModalCheckout(productId) {
         const modalCheckout = document.getElementById('crudModalCheckout');
-        const modalCheckoutContent = document.getElementById('crudModalCheckoutContent');
+        const modalContentCheckout = document.getElementById('crudModalContentCheckout');
         const form = document.getElementById('checkoutForm');
 
         fetch(`/get_product_data_for_checkout/${productId}/`)
@@ -159,22 +165,22 @@
                 form.dataset.productId = productId; // Set product ID on the form
             });
 
-        modal.classList.remove('hidden'); 
+        modalCheckout.classList.remove('hidden'); 
         setTimeout(() => {
-            modalCheckoutContent.classList.remove('opacity-0', 'scale-95');
-            modalCheckoutContent.classList.add('opacity-100', 'scale-100');
+            modalContentCheckout.classList.remove('opacity-0', 'scale-95');
+            modalContentCheckout.classList.add('opacity-100', 'scale-100');
         }, 50); 
     }
 
     function hideModalCheckout() {
-        const modal = document.getElementById('crudModalCheckout');
-        const modalContent = document.getElementById('crudModalCheckoutContent');
+        const modalCheckout = document.getElementById('crudModalCheckout');
+        const modalContentCheckout = document.getElementById('crudModalContentCheckout');
 
-        modalContent.classList.remove('opacity-100', 'scale-100');
-        modalContent.classList.add('opacity-0', 'scale-95');
+        modalContentCheckout.classList.remove('opacity-100', 'scale-100');
+        modalContentCheckout.classList.add('opacity-0', 'scale-95');
 
         setTimeout(() => {
-            modal.classList.add('hidden');
+            modalCheckout.classList.add('hidden');
         }, 150); 
     }
 
@@ -210,3 +216,5 @@
     })
 
 </script>
+
+{% endblock content %}
