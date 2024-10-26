@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.shortcuts import render, reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
@@ -22,6 +22,7 @@ from functools import wraps
 from django.contrib.auth.models import User
 from main.forms import TransactionForm
 from main.forms import ProductForm
+from django.utils.html import strip_tags
 
 
 
@@ -162,8 +163,12 @@ def create_review(request, id):
   return render(request, "review_form.html", context)
 
 
-def show_json(request):
+def show_json_product(request):
     data = Product.objects.all()
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+def show_json_transaction(request):
+    data = Transaction.objects.filter(user=request.user)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
 
@@ -244,4 +249,32 @@ def edit_product(request, id):
 
     context = {'form': form}
     return render(request, "edit_product.html", context)
-   
+
+
+@csrf_exempt
+@require_POST
+def checkout_by_ajax(request, id):
+    name = strip_tags(request.POST.get("name"))
+    email = strip_tags(request.POST.get("email"))
+    phone_number = strip_tags(request.POST.get("phone_number"))
+    product = Product.objects.get(pk=id)
+    user = request.user
+    
+
+    new_transaction = Transaction(
+        name=name, email=email,
+        phone_number=phone_number,
+        product=product, user=user
+    )
+    new_transaction.save()
+
+    return HttpResponse(b"CREATED", status=201) 
+
+def get_product_data_for_checkout(request, id):
+    product = Product.objects.get(pk=id)
+    data = {
+        'name': product.name,
+        'gambar': product.gambar.url,
+        'harga': product.harga,
+    }
+    return JsonResponse(data)  
