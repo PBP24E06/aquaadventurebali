@@ -17,6 +17,9 @@ class UserProfile(models.Model):
     bio = models.TextField(null=True, blank=True)  # Deskripsi diri opsional
     date_joined = models.DateTimeField(auto_now_add=True)  
 
+    @property
+    def has_reviewed_product(self, product):
+        return Review.objects.filter(user=self.user, product=product).exists()
 
     def promote_admin(self):
         if self.role == 'CUSTOMER':

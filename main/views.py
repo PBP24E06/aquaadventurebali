@@ -219,7 +219,15 @@ def checkout(request, id):
 def view_transaction_history(request):
   transaction_list = Transaction.objects.filter(user=request.user)
 
-  context = {'transaction_list': transaction_list}
+  reviewed_products = set(Review.objects.filter(user=request.user).values_list('product_id', flat=True))
+
+  for transaction in transaction_list:
+    transaction.has_reviewed = transaction.product.id in reviewed_products
+
+  context = {
+    'transaction_list': transaction_list,
+    'user': request.user
+    }
 
   return render(request, "transaction_history.html", context)
 
