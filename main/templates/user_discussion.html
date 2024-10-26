@@ -14,13 +14,13 @@
         
         <div style="text-align: center;">
             {% if profile.profile_picture %}
-                <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user.username }}'s Profile Picture" style="width: 150px; height: 150px; border-radius: 75px; border: 2px solid #007bff;">
+                <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user_requested.username }}'s Profile Picture" style="width: 150px; height: 150px; border-radius: 75px; border: 2px solid #007bff;">
             {% else %}
                 <i class="fas fa-user-circle" style="font-size: 150px; color: #007bff;"></i>
             {% endif %}
         </div>
         
-        <h2 style="text-align: center; margin-top: 15px;">{{ profile.user.username }}</h2>
+        <h2 style="text-align: center; margin-top: 15px;">{{ profile.user_requested.username }}</h2>
         <p><strong>Role:</strong> {{ profile.role }}</p>
         <p><strong>Alamat:</strong> {{ profile.alamat|default:"Belum diisi" }}</p>
         <p><strong>Tanggal Lahir:</strong> {{ profile.birthdate|date:"Y-m-d"|default:"Belum diisi" }}</p>
@@ -57,7 +57,7 @@
                         
                         {% if discussion.parent %}
                             <div style="background-color: #f0f0f0; border-left: 4px solid #32c866; padding: 10px; margin-top: 10px;">
-                                <strong>Replying to:</strong> {{ discussion.parent.user.username }}<br>
+                                <strong>Replying to:</strong> {{ discussion.parent.user_requested.username }}<br>
                                 <span style="font-size: 0.9rem;">{{ discussion.parent.message }}</span>
                             </div>
                         {% endif %}

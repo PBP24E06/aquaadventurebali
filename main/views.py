@@ -323,9 +323,9 @@ def show_forum_json(request, product_id):
 
 def show_user_discussion(request, user_id):
 
-    user_requested = request.user
-    user = get_object_or_404(User, pk=user_id)
-    discussions = Forum.objects.filter(user=user).select_related('product')
+    user = request.user
+    user_requested = get_object_or_404(User, pk=user_id)
+    discussions = Forum.objects.filter(user=user_requested).select_related('product')
     user_profile = UserProfile.objects.filter(user=user_id)
 
     context = {
