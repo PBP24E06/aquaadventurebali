@@ -10,7 +10,7 @@ class UserProfile(models.Model):
         ('ADMIN', 'Admin'),
     )
     role = models.CharField(max_length=10, choices=roles, default='CUSTOMER')
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)  # Gambar profil opsional
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True, default='ikon_botak/foto_ikon.jpg')
     alamat = models.TextField(blank=True, null=True)  # Alamat opsional
     birthdate = models.DateField(null=True, blank=True)  # Tanggal lahir opsional
     phone_number = models.CharField(max_length=15, null=True, blank=True)  # Nomor telepon opsional
@@ -43,7 +43,7 @@ class Product(models.Model):
         reviews = self.reviews.all() 
         if reviews.count() > 0:
             avg = sum(review.rating for review in reviews) / len(reviews)
-            return f"{avg:.2f}"
+            return f"{avg:.1f}"
         return 0
 
 
