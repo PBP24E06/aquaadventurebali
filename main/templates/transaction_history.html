@@ -12,7 +12,6 @@
                     <p class="font-medium text-lg leading-8 text-indigo-600">Product</p>
                 </div>
                 <div class="col-span-1 col-start-4 flex justify-center max-lg:hidden">
-                    <p class="font-medium text-lg leading-8 text-gray-600 text-center">Transaction Id</p>
                 </div>
                 <div class="col-span-1 col-start-5 flex justify-center max-lg:hidden">
                     <p class="font-medium text-lg leading-8 text-gray-600">Checkout Time</p>
@@ -32,7 +31,7 @@
                     class="col-span-8 sm:col-span-4 lg:col-span-2 flex h-full justify-center px-4 flex-col max-lg:items-center">
                     <h5 class="font-manrope font-semibold text-xl leading-9 text-black mb-1 whitespace-normal break-words">
                         {{ transaction.product.name }}</h5>
-                        <p class="font-normal text-base leading-7 text-gray-600 max-md:text-center">Rp {{ transaction.product.harga }}</p>
+                        <p class="font-normal text-base leading-7 text-gray-600 max-md:text-center">Rp {{ transaction.product.formatted_harga }}</p>
                 </div>
 
                 <div class="col-span-1 sm:col-span-4 lg:col-span-1 flex items-center justify-center">

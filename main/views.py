@@ -127,6 +127,11 @@ def make_admin(request, user_id):
   
 @login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
+  
+  if request.user.profile.role == 'ADMIN':
+    messages.info(request, 'You are already an admin!')
+    return redirect('main:show_main')
+  
   if request.method == 'POST':
     admin_password = request.POST.get('admin_password')
 
@@ -145,6 +150,7 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
     return redirect('main:show_main')
   
   return render(request, 'request_admin.html', {})
+     
 
 @login_required
 def create_review(request, id):
@@ -223,6 +229,7 @@ def view_transaction_history(request):
 
   for transaction in transaction_list:
     transaction.has_reviewed = transaction.product.id in reviewed_products
+    transaction.product.formatted_harga = f"{format(transaction.product.harga, ',').replace(',', '.')}"
 
   context = {
     'transaction_list': transaction_list,
@@ -242,7 +249,7 @@ def create_product(request):
     toko = request.POST.get("toko")
     alamat = request.POST.get("alamat")
     kontak = request.POST.get("kontak")
-    gambar = request.FILES.get("gambar")  # Pastikan menggunakan request.FILES untuk upload file
+    gambar = request.FILES.get("gambar") 
 
     new_product = Product(
         name=name,
@@ -310,6 +317,7 @@ def get_product_data_for_checkout(request, id):
     return JsonResponse(data)  
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
+    product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
     return render(request, 'product_detail.html', {'data': product})
 
 @login_required
