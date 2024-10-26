@@ -14,8 +14,8 @@ from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
 from main.models import Product, UserProfile, Review
 from main.forms import ReviewForm, UserProfileForm
-
-
+from django.core.paginator import Paginator
+from django.db.models import Q
 from main.models import Product, UserProfile, Forum
 from django.core.exceptions import PermissionDenied
 from functools import wraps
@@ -282,9 +282,45 @@ def add_discussion_or_reply(request, product_id):
     else:
         return HttpResponse("Form data invalid", status=400)
     
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+from .models import Forum
+from django.core import serializers
+
 def show_forum_json(request, product_id):
-    data = Forum.objects.filter(product_id=product_id)
-    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+    # Get all discussions related to the product
+    discussions = Forum.objects.filter(product_id=product_id).order_by('-created_at')
+    
+    # Get only the top-level discussions (those with parent=None) and paginate them
+    top_level_discussions = discussions.filter(parent=None)
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(top_level_discussions, 10)  # Show 10 top-level discussions per page
+    page_obj = paginator.get_page(page_number)
+    
+    # Get the IDs of the paginated top-level discussions
+    top_level_ids = [discussion.id for discussion in page_obj]
+    
+    # Filter discussions to only include:
+    # - Top-level discussions in the current page
+    # - Replies to those top-level discussions
+    filtered_discussions = discussions.filter(
+        Q(id__in=top_level_ids) | Q(parent_id__in=top_level_ids)
+    )
+    
+    # Serialize the paginated top-level discussions and the filtered discussions
+    top_level_data = serializers.serialize("json", page_obj)
+    filtered_discussions_data = serializers.serialize("json", filtered_discussions)
+    
+    # Return the JSON response
+    return JsonResponse({
+        'top_level_discussions': top_level_data,  # Only the paginated top-level discussions
+        'discussions': filtered_discussions_data,  # Paginated top-level and their direct replies
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'num_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+    })
+
 
 def show_user_discussion(request, user_id):
 

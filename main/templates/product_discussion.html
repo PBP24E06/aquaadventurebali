@@ -9,6 +9,7 @@
         </button>
     </div>
     <div id="discussionContent" style="margin-bottom: 20px;"></div>
+    <div id="paginationControls" style="display: flex; justify-content: center; margin-top: 20px;"></div>
     <div id="addDiscussionBox" style="border-top: 1px solid #e5e5e5; padding-top: 10px; display: none;">
         <form id="addDiscussionForm" method="POST" style="display: flex; flex-direction: column;">
             {% csrf_token %} <!-- Include CSRF Token -->
@@ -39,14 +40,22 @@
     const csrftoken = getCookie('csrftoken');
     const productId = "{{ data.id }}";
 
-    async function getForumEntries() {
-        return fetch("{% url 'main:show_forum_json' data.id %}").then(res => res.json());
+    let currentPage = 1;
+    let numPage = 0;
+
+    async function getForumEntries(page = 1) {
+        return fetch(`{% url 'main:show_forum_json' data.id %}?page=${page}`)
+            .then(res => res.json());
     }
 
-    async function refreshForum() {
+    async function refreshForum(page = 1) {
+        currentPage = page
         document.getElementById("discussionContent").innerHTML = "";
-        const forumEntries = await getForumEntries();
         let htmlString = "";
+        const forumData = await getForumEntries(page);
+        console.log(forumData)
+        numPage = forumData.num_pages
+        const forumEntries = JSON.parse(forumData.discussions);
 
         if (forumEntries.length === 0) {
             htmlString = `
@@ -90,6 +99,7 @@
             });
         }
         document.getElementById("discussionContent").innerHTML = htmlString;
+        setupPaginationControls(forumData); // Call to set up pagination controls
 
         document.querySelectorAll('.three-dots-btn').forEach(button => {
             button.addEventListener('click', function() {
@@ -108,6 +118,33 @@
         document.querySelectorAll('.replyForm').forEach(form => {
             form.onsubmit = addReply; 
         });
+    }
+
+    function setupPaginationControls(forumData) {
+        const paginationControls = document.getElementById("paginationControls");
+        paginationControls.innerHTML = "";  // Clear existing controls
+
+        if (forumData.has_previous) {
+            const prevButton = document.createElement("button");
+            prevButton.textContent = "Previous";
+            prevButton.onclick = () => refreshForum(currentPage - 1);
+            paginationControls.appendChild(prevButton);
+        }
+
+        for (let i = 1; i <= numPage; i++) {
+            const page = document.createElement("button"); // Use a button or span element
+            page.textContent = i; // Set the content to display the page number
+            page.onclick = () => refreshForum(i); // Pass 'i' as the page number to the function
+            paginationControls.appendChild(page); // Append to the pagination container
+        }
+
+
+        if (forumData.has_next) {
+            const nextButton = document.createElement("button");
+            nextButton.textContent = "Next";
+            nextButton.onclick = () => refreshForum(currentPage + 1);
+            paginationControls.appendChild(nextButton);
+        }
     }
 
     function getRepliesForParent(parentId, entries) {
