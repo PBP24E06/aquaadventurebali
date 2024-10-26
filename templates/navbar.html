@@ -17,7 +17,42 @@
                 <a href="{% url 'main:logout_user' %}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-300">
                   Logout
                 </a>
+
+                <div class="relative">
+                  <div onclick="toggleMenu()" class="cursor-pointer">
+                      {% if user.profile.profile_picture %}
+                          <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="w-10 h-10 rounded-full border-2 border-gray-300">
+                      {% else %}
+                          <img src="./static/ikon_botak/foto_ikon.jpg" class="w-10 h-10 rounded-full border-2 border-gray-300" alt="Default Profile Icon">
+                      {% endif %}
+                  </div>
+
+                  <!-- Toggle Menu -->
+                  <div id="profileMenu" class="hidden absolute right-0 translate-x-4 mt-2 w-56 bg-white rounded-md shadow-xl py-2 transition duration-150 ease-in-out">
+                      <a href="{% url 'main:profile' %}" class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
+                          <div class="flex items-center space-x-3">
+                              <span>View Profile</span>
+                          </div>
+                      </a>
+                      <a href=# class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
+                          <div class="flex items-center space-x-3">
+                              <span>Cart</span>
+                          </div>
+                      </a>
+                      <a href=# class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
+                          <div class="flex items-center space-x-3">
+                              <span>Wishlist</span>
+                          </div>
+                      </a>
+                      <a href=# class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
+                          <div class="flex items-center space-x-3">
+                              <span>Purchased Products</span>
+                          </div>
+                      </a>
+                  </div>
               </div>
+            </div>
+
             {% else %} 
               <a href="{% url 'main:login_user' %}" class="text-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300">
                 Login
@@ -38,3 +73,23 @@
       </div>
     </div>
   </nav>
+
+  <script>
+    function toggleMenu() {
+        const menu = document.getElementById('profileMenu');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+        } else {
+            menu.classList.add('hidden');
+        }
+    }
+    
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('profileMenu');
+        const profilePic = event.target.closest('[onclick="toggleMenu()"]');
+        
+        if (!profilePic && !menu.contains(event.target) && !menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+        }
+    });
+    </script>
