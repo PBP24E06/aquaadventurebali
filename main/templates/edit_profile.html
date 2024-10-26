@@ -1,0 +1,35 @@
+<!-- templates/edit_profile.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+    <h1>Edit Profil</h1>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+            <label for="profile_picture">Foto Profil:</label>
+            <input type="file" name="profile_picture" id="profile_picture">
+        </div>
+        <div>
+            <label for="alamat">Alamat:</label>
+            <textarea name="alamat" id="alamat" rows="4">{{ profile.alamat }}</textarea>
+        </div>
+        <div>
+            <label for="birthdate">Tanggal Lahir:</label>
+            <input type="date" name="birthdate" id="birthdate" value="{{ profile.birthdate|date:'Y-m-d' }}">
+        </div>
+        <div>
+            <label for="phone_number">Nomor Telepon:</label>
+            <input type="text" name="phone_number" id="phone_number" value="{{ profile.phone_number }}">
+        </div>
+        <div>
+            <label for="bio">Deskripsi Diri:</label>
+            <textarea name="bio" id="bio" rows="4">{{ profile.bio }}</textarea>
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+            <button type="submit" style="background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px;">Simpan Perubahan</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
