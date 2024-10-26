@@ -43,8 +43,10 @@ def show_main(request):
         products = products.filter(harga__lte=max_price)
 
     print(f"kategori: {kategori_filter}, min: {min_price}, max: {max_price}")
-
     print(f"Size: {products.count()}")
+
+    for product in products:
+        product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
 
     context = {
        "data": products,
