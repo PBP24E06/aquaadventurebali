@@ -8,6 +8,11 @@
         <div class="hidden md:flex items-center space-x-8">
             <a href="{% url 'main:show_main' %}"><h1 class="text-center text-gray-300 hover:text-white">Home</h4></a>
         </div>
+        {% if user.is_authenticated %}
+          <div class="hidden md:flex items-center space-x-8">
+            <a href="{% url 'main:show_wishlist' %}"><h1 class="text-center text-gray-300 hover:text-white">Wishlist</h4></a>
+          </div>
+        {% endif %}
 
 
         <div class="hidden md:flex items-center ml-auto space-x-4">

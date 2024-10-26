@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
-from main.models import Product, UserProfile, Review
+from main.models import Product, UserProfile, Review, Wishlist
 from main.forms import ReviewForm, UserProfileForm
 
 
@@ -258,4 +258,49 @@ def edit_profile(request):
 
     return render(request, 'edit_profile.html', {'form': form})
    
-   
+@login_required
+def show_wishlist(request):
+    wishlists = Wishlist.objects.filter(user=request.user)
+
+    context = {
+       "products": wishlists,
+       "category_list": ['Aksesoris','Boots','Camera','Fin','Fins','Glove','Gloves', 'Hood','Jacket','Mask','Others','Pants','Regulator','Snorkel','Socks','Wetsuit']
+    }
+    
+    return render(request, "wishlist.html", context)
+
+@csrf_exempt
+def filter_wishlist(request):
+    wishlists = Wishlist.objects.filter(user=request.user)
+
+    #Filtering by category
+    kategori = request.GET.get('kategori', '')
+    if kategori:
+      wishlists = wishlists.filter(product__kategori=kategori)
+
+    product_ids = wishlists.values_list('product', flat=True)
+    products = Product.objects.filter(id__in=product_ids)
+
+    data = products
+    print(data)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+def delete_wishlist(request, id):
+    product = Product.objects.get(pk=id)
+    user = request.user
+    wishlist = Wishlist.objects.get(product=product, user=user)
+    wishlist.delete()
+    return HttpResponseRedirect(reverse('main:show_wishlist'))
+
+def add_wishlist(request, id):
+    product = Product.objects.get(pk=id)
+    user = request.user
+    try:
+      wishlist = Wishlist.objects.get(product=product, user=user)
+    except Wishlist.DoesNotExist:
+      wishlist = Wishlist(product=product, user=user)
+      wishlist.save()
+      print(f'Created new wishlist item for product ID: {wishlist.product.id}')
+    else:
+      print(f'Found existing wishlist item for product ID: {wishlist.product.id}')
+    return HttpResponseRedirect(reverse('main:product_detail', args=[id]))
