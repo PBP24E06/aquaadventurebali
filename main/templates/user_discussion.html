@@ -55,11 +55,9 @@
         currentPage = page;
         document.getElementById("discussionContent").innerHTML = "";
         let htmlString = "";
-        console.log("fetching data")
         const forumData = await getDiscussionEntries(page);
         numPage = forumData.num_pages;
         const forumEntries = forumData.discussions;
-        console.log(forumData)
         
         if (forumEntries.length === 0) {
             htmlString = `
@@ -71,7 +69,6 @@
             let k = 0;
             forumEntries.forEach((item) => {
                 k++;
-                console.log(item.fields.product_id)
                 htmlString += `
                     <div style="background-color: #f9f9f9; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
                         <div style="display: flex; justify-content: space-between;">
@@ -95,9 +92,9 @@
                                 </div>
                             ` : ''}
 
-                            ${item.fields.user === loggedInUserId ? `
+                            ${String(item.fields.user_requested) === String(loggedInUserId) ? `
                             <div style="margin-top: 10px;">
-                                ${userRequestedId === loggedInUserId ? `
+                                ${String(item.fields.user_requested) === String(loggedInUserId) ? `
                                 <button class="delete-btn" data-id="${item.pk}" style="background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;">
                                     Delete
                                 </button>

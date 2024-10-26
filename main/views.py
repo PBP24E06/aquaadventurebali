@@ -23,6 +23,8 @@ from django.contrib.auth.models import User
 from main.forms import ProductForm,CheckoutForm, ForumForm
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
+from urllib.parse import unquote
+
 
 
 def show_main(request):
@@ -350,6 +352,7 @@ def show_user_discussion_json(request, user_id):
         discussion_data.append({
             "pk": discussion.pk,
             "fields": {
+                "user_requested" : user_id,
                 "product_id": discussion.product_id,
                 "product_name": product.name,
                 "product_gambar": product_gambar_url,
