@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json, create_product, delete_product, edit_product, all_review, request_admin, create_review
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json, create_product, delete_product, edit_product, all_review, request_admin, create_review, create_report
 
 
 app_name = "main"
@@ -17,5 +17,6 @@ urlpatterns = [
     path("all-review/<uuid:id>", all_review, name="all_review"),
     path('create-product', create_product, name='create_product'),
     path('delete/<uuid:id>', delete_product, name='delete_product'),
-    path('edit-product/<uuid:id>', edit_product, name='edit_product')
+    path('edit-product/<uuid:id>', edit_product, name='edit_product'),
+    path('product/<int:product_id>/report/', create_report, name='create_report'),
 ]

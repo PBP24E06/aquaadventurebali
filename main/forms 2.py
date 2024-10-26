@@ -39,4 +39,4 @@ class CheckoutForm(ModelForm):
 class ReportForm(ModelForm):
     class Meta:
         model = Report
-        fields = ['subject', "message"]
+        fields = ["message"]
