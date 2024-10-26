@@ -49,7 +49,6 @@
     }
 
     async function getUserProfileEntries(userId){
-        console.log(userId)
         return fetch(`/user_profile_json/${userId}/`)
         .then(res => res.json());
     }
@@ -74,7 +73,6 @@
                 if (item.fields.parent === null) {
                     const userProfileEntries = await getUserProfileEntries(item.fields.user);
                     let replyHtml = await getRepliesForParent(item.pk, forumEntries);
-                    console.log(item.user)
                     htmlString += `
                         <div style="border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
                             <div style="display: flex; align-items: center; margin-bottom: 10px;">
@@ -127,7 +125,6 @@
         document.querySelectorAll('.user-picture').forEach(tag => {
             tag.addEventListener('click', function() {
                 const userId = Number(this.getAttribute('pic-id'));
-                console.log("Redirecting to user discussion for user ID:", userId);  // Debug log
                 window.location.href = `/user_discussion/${userId}/`;
             });
         });
@@ -135,7 +132,6 @@
         document.querySelectorAll('.user-username').forEach(tag => {
             tag.addEventListener('click', function() {
                 const userId = Number(this.getAttribute('user-id'));
-                console.log("Redirecting to user discussion for user ID:", userId);  // Debug log
                 window.location.href = `/user_discussion/${userId}/`;
             })
         })
@@ -176,12 +172,11 @@
             if (entry.fields.parent === parentId) {
                 const userProfileEntries = await getUserProfileEntries(entry.fields.user);
                 const userProfileUrl = `/user_discussion/${entry.fields.user}/`;
-                console.log(userProfileEntries)
                 replyHtml += `
                     <div style="display: flex; align-items: flex-start; margin-top: 10px;">
                         <a class="user-picture" pic-id="${entry.fields.user}" style="cursor: pointer;"><img src="${userProfileEntries.profile_picture ? userProfileEntries.profile_picture : '{% static "image/profile-picture.png" %}'}" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;"></a>
                         <div style="flex: 1; background-color: #f9f9f9; border-radius: 8px; padding: 10px;">
-                            <p><a style="font-weight: bold; cursor: pointer;" class="user-username" user-id="${entry.fields.user}"> - ${entry.fields.created_at}</p>
+                            <p><a style="font-weight: bold; cursor: pointer;" class="user-username" user-id="${entry.fields.user}">${entry.fields.commenter_name}</a> - ${entry.fields.created_at}</p>
                             <p">${entry.fields.message}</p>
                         </div>
                         <button class="three-dots-btn" style="background: none; border: none; font-size: 18px; cursor: pointer;">...</button>

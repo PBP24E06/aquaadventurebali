@@ -34,73 +34,146 @@
         </div>
         {% endif %}
     </div>
-
-    <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 20px;">Diskusi Pengguna</h2>
     
-    <div style="display: flex; flex-direction: column; gap: 15px;">
-        {% if discussions %}
-            {% for discussion in discussions %}
-                <div style="background-color: #f9f9f9; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div style="display: flex; gap: 15px; align-items: flex-start;">
-                            <div>
-                                <strong>{{ discussion.product.name }}</strong><br>
-                                <span style="font-size: 0.9rem; color: #777;">{{ discussion.created_at|date:"Y-m-d H:i" }}</span>
-                            </div>
-                        </div>
-                        <p>{{ discussion.product.id }}</p>
-                        <a href="{% url 'main:product_detail' discussion.product.id %}" style="font-size: 0.9rem; color: #32c866; font-weight: bold;">Lihat Produk</a>
-                    </div>
-
-                    <div style="margin-top: 15px;">
-                        <p>{{ discussion.message }}</p>
-                        
-                        {% if discussion.parent %}
-                            <div style="background-color: #f0f0f0; border-left: 4px solid #32c866; padding: 10px; margin-top: 10px;">
-                                <strong>Replying to:</strong> {{ discussion.parent.user_requested.username }}<br>
-                                <span style="font-size: 0.9rem;">{{ discussion.parent.message }}</span>
-                            </div>
-                        {% endif %}
-
-                        {% if discussion.user == request.user %}
-                        <div style="margin-top: 10px;">
-                            {% if user_requested.id == user.id %}
-                            <button class="delete-btn" data-id="{{ discussion.id }}" style="background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;">
-                                Delete
-                            </button>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>Belum ada diskusi yang dimulai.</p>
-        {% endif %}
-    </div>
+    <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 20px;">Diskusi Pengguna</h2>
+    <div id="discussionContent" style="display: flex; flex-direction: column; gap: 15px; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;"></div>
+    <div id="paginationControls" style="display: flex; justify-content: center; margin-top: 20px;"></div>
 </div>
 
 <script>
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const discussionId = this.getAttribute('data-id');
-            const csrftoken = "{{ csrf_token }}";  
-            
-            fetch(`/delete_discussion/${discussionId}/`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                },
-            })
-            .then(response => {
-                if (response.ok) {
-                    location.reload();  
-                } else {
-                    alert('Gagal menghapus komentar.');
-                }
+    const loggedInUserId = "{{ user.id }}";
+
+    let currentPage = 1;
+    let numPage = 0;
+
+    async function getDiscussionEntries(page = 1) {
+        return fetch(`{% url 'main:show_user_discussion_json' user_requested.id %}?page=${page}`)
+            .then(res => res.json());
+    }
+
+    async function refreshForum(page = 1) {
+        currentPage = page;
+        document.getElementById("discussionContent").innerHTML = "";
+        let htmlString = "";
+        console.log("fetching data")
+        const forumData = await getDiscussionEntries(page);
+        numPage = forumData.num_pages;
+        const forumEntries = forumData.discussions;
+        console.log(forumData)
+        
+        if (forumEntries.length === 0) {
+            htmlString = `
+                <div style="background-color: #f9f9f9; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <img src="{% static 'image/no-discussion.png' %}" alt="no discussion" style="width: 64px; height: 64px; margin-bottom: 8px;"/>
+                    <p style="text-align: center; font-weight: bold;">Belum Ada Diskusi Produk</p>
+                </div>`;
+        } else {
+            let k = 0;
+            forumEntries.forEach((item) => {
+                k++;
+                console.log(item.fields.product_id)
+                htmlString += `
+                    <div style="background-color: #f9f9f9; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div style="display: flex; gap: 15px; align-items: flex-start;">
+                                <div>
+                                    <strong>${item.fields.product_name}</strong><br>
+                                    <span style="font-size: 0.9rem; color: #777;">${item.fields.created_at}</span>
+                                </div>
+                                <a class="discussed-product" product-id=${k}-${item.fields.product_id} style="font-size: 0.9rem; color: #32c866; font-weight: bold; cursor: pointer;">Lihat Produk</a>
+                            </div>
+                        </div>
+                        <img src="${item.fields.product_gambar}" alt="${item.fields.product_name}" style="width: 64px; height: auto; border-radius: 10px;">
+
+                        <div style="margin-top: 15px;">
+                            <p><strong>Comment: </strong>${item.fields.message}</p>
+                            
+                            ${item.fields.parent ? `
+                                <div style="background-color: #f0f0f0; border-left: 4px solid #32c866; padding: 10px; margin-top: 10px;">
+                                    <strong>Replying to:</strong> ${item.fields.parent_commenter}<br>
+                                    <span style="font-size: 0.9rem;">${item.fields.parent_message}</span>
+                                </div>
+                            ` : ''}
+
+                            ${item.fields.user === loggedInUserId ? `
+                            <div style="margin-top: 10px;">
+                                ${userRequestedId === loggedInUserId ? `
+                                <button class="delete-btn" data-id="${item.pk}" style="background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;">
+                                    Delete
+                                </button>
+                                ` : ''}
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+        }
+        document.getElementById("discussionContent").innerHTML = htmlString;
+        setupPaginationControls(forumData);
+
+        document.querySelectorAll('.discussed-product').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const combinedId = this.getAttribute('product-id');
+                const productId = combinedId.split('-').slice(1).join('-'); 
+                window.location.href = `/product-detail/${productId}`;
             });
         });
-    });
+
+
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const discussionId = this.getAttribute('data-id');
+                const csrftoken = "{{ csrf_token }}";  
+                
+                fetch(`/delete_discussion/${discussionId}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                    },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();  
+                    } else {
+                        alert('Gagal menghapus komentar.');
+                    }
+                });
+            });
+        });
+    }
+
+    function setupPaginationControls(forumData) {
+        const paginationControls = document.getElementById("paginationControls");
+        paginationControls.innerHTML = "";  
+
+        if (forumData.has_previous) {
+            const prevButton = document.createElement("button");
+            prevButton.textContent = "Previous";
+            prevButton.onclick = () => refreshForum(currentPage - 1);
+            prevButton.style = "margin: 0 5px; padding: 5px 10px; border: none; background-color: #f0f0f0; cursor: pointer;";
+            paginationControls.appendChild(prevButton);
+        }
+
+        for (let i = 1; i <= numPage; i++) {
+            const page = document.createElement("button");
+            page.textContent = i;
+            page.onclick = () => refreshForum(i);
+            page.style = "margin: 0 5px; padding: 5px 10px; border: none; background-color: #f0f0f0; cursor: pointer;";
+            paginationControls.appendChild(page);
+        }
+
+        if (forumData.has_next) {
+            const nextButton = document.createElement("button");
+            nextButton.textContent = "Next";
+            nextButton.onclick = () => refreshForum(currentPage + 1);
+            nextButton.style = "margin: 0 5px; padding: 5px 10px; border: none; background-color: #f0f0f0; cursor: pointer;";
+            paginationControls.appendChild(nextButton);
+        }
+    }
+
+    refreshForum();
 </script>
 
 {% endblock content %}

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from .views import show_main, login_user, logout_user, register, checkout, request_admin, show_json, create_product, delete_product, edit_product, all_review, request_admin, create_review, product_detail, profile_view, edit_profile, add_discussion_or_reply, show_user_discussion, show_forum_json, delete_discussion, show_user_profile_json
+from .views import show_main, login_user, logout_user, register, checkout, request_admin, show_json, create_product, delete_product, edit_product, all_review, request_admin, create_review, product_detail, profile_view, edit_profile, add_discussion_or_reply, show_user_discussion, show_forum_json, delete_discussion, show_user_profile_json, show_user_discussion_json
 
 app_name = "main"
 
@@ -24,5 +24,6 @@ urlpatterns = [
     path('add_discussion_or_reply/<uuid:product_id>/', add_discussion_or_reply, name='add_discussion_or_reply'),
     path('forum_json/<uuid:product_id>/', show_forum_json, name='show_forum_json'),
     path('delete_discussion/<int:discussion_id>/', delete_discussion, name='delete_discussion'),
-    path('user_profile_json/<int:userId>/', show_user_profile_json, name="show_user_profile_json")
+    path('user_profile_json/<int:userId>/', show_user_profile_json, name="show_user_profile_json"),
+    path('show_user_discussion_json/<int:user_id>/', show_user_discussion_json, name='show_user_discussion_json'),
 ]

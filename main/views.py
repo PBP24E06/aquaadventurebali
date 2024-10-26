@@ -287,33 +287,25 @@ def show_user_profile_json(request, userId):
    return HttpResponse(serializers.serialize("json", user_profile), content_type="application/json")
 
 def show_forum_json(request, product_id):
-    # Get all discussions related to the product
     discussions = Forum.objects.filter(product_id=product_id).order_by('-created_at')
-    
-    # Get only the top-level discussions (those with parent=None) and paginate them
+
     top_level_discussions = discussions.filter(parent=None)
     page_number = request.GET.get('page', 1)
-    paginator = Paginator(top_level_discussions, 10)  # Show 10 top-level discussions per page
+    paginator = Paginator(top_level_discussions, 10) 
     page_obj = paginator.get_page(page_number)
     
-    # Get the IDs of the paginated top-level discussions
     top_level_ids = [discussion.id for discussion in page_obj]
     
-    # Filter discussions to only include:
-    # - Top-level discussions in the current page
-    # - Replies to those top-level discussions
     filtered_discussions = discussions.filter(
         Q(id__in=top_level_ids) | Q(parent_id__in=top_level_ids)
     )
     
-    # Serialize the paginated top-level discussions and the filtered discussions
     top_level_data = serializers.serialize("json", page_obj)
     filtered_discussions_data = serializers.serialize("json", filtered_discussions)
     
-    # Return the JSON response
     return JsonResponse({
-        'top_level_discussions': top_level_data,  # Only the paginated top-level discussions
-        'discussions': filtered_discussions_data,  # Paginated top-level and their direct replies
+        'top_level_discussions': top_level_data, 
+        'discussions': filtered_discussions_data, 
         'has_next': page_obj.has_next(),
         'has_previous': page_obj.has_previous(),
         'num_pages': paginator.num_pages,
@@ -322,21 +314,61 @@ def show_forum_json(request, product_id):
 
 
 def show_user_discussion(request, user_id):
-
     user = request.user
     user_requested = get_object_or_404(User, pk=user_id)
-    discussions = Forum.objects.filter(user=user_requested).select_related('product')
-    user_profile = UserProfile.objects.filter(user=user_id)
 
     context = {
         'user_requested': user_requested,
         'user': user,
-        'discussions': discussions,
-        'profile': user_profile
     }
     
     return render(request, 'user_discussion.html', context)
 
+def show_user_discussion_json(request, user_id):
+    user_requested = get_object_or_404(User, pk=user_id)
+    discussions = Forum.objects.filter(user=user_requested).order_by('-created_at')
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(discussions, 10)
+    page_obj = paginator.get_page(page_number)
+
+    paged_discussion_id = [discussion.id for discussion in page_obj]
+
+    filtered_discussions = discussions.filter(
+        Q(id__in=paged_discussion_id) | Q(parent_id__in=paged_discussion_id)
+    ).order_by('-created_at')
+
+    discussion_data = []
+    for discussion in filtered_discussions:
+        product = Product.objects.get(id=discussion.product_id)
+
+        parent_message = discussion.parent.message if discussion.parent else None
+        parent_commenter = discussion.parent.commenter_name if discussion.parent else None
+
+        raw_url = product.gambar.url if product.gambar else None
+        product_gambar_url = f"{unquote(raw_url).lstrip('/')}" if raw_url else None
+
+        discussion_data.append({
+            "pk": discussion.pk,
+            "fields": {
+                "product_id": discussion.product_id,
+                "product_name": product.name,
+                "product_gambar": product_gambar_url,
+                "commenter_name": discussion.commenter_name,
+                "message": discussion.message,
+                "created_at": discussion.created_at.isoformat(),
+                "parent": discussion.parent_id,
+                "parent_message": parent_message,
+                "parent_commenter": parent_commenter
+            }
+        })
+
+    return JsonResponse({
+        'discussions': discussion_data,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'num_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+    })
 
 @require_http_methods(["DELETE"])
 def delete_discussion(request, discussion_id):
