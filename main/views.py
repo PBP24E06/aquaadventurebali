@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
@@ -12,6 +12,9 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
+from main.models import Product, UserProfile, Review, Transaction
+from main.forms import ReviewForm
+
 from main.models import Product, UserProfile, Review
 from main.forms import ReviewForm, UserProfileForm
 
@@ -19,7 +22,9 @@ from main.models import Product, UserProfile
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
-from main.forms import ProductForm,CheckoutForm
+from main.forms import TransactionForm
+from main.forms import ProductForm
+from django.utils.html import strip_tags
 
 
 
@@ -164,11 +169,17 @@ def create_review(request, id):
   return render(request, "review_form.html", context)
 
 
-def show_json(request):
+def show_json_product(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+def show_json_transaction(request):
+    data = Transaction.objects.filter(user=request.user)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+
+
+@login_required(login_url='/login')
 def all_review(request, id):
     product = Product.objects.get(pk=id)
     reviews = product.reviews.all()
@@ -178,32 +189,39 @@ def all_review(request, id):
     }
     return render(request, "all_review.html", context)
 
+@login_required(login_url='/login')
 def checkout(request, id):
-    # Use get_object_or_404 to handle non-existing products gracefully
-    product = Product.objects.get(pk=id)
-    total_harga = product.harga + 10000  # Add shipping cost
+  product = Product.objects.get(pk=id)
+  total_harga = product.harga + 10000
 
-    if request.method == 'POST':
-        form = CheckoutForm(request.POST)
-        if form.is_valid():
-            cart = form.save(commit=False)  # Create instance without saving
-            cart.product = product  # Associate the product with the cart
-            cart.user = request.user  # Set the current user (assuming you want to save this)
-            cart.save()  # Save the cart instance to the database
-            messages.success(request, 'Checkout successful!')  # Provide feedback
-            return redirect('some_success_url')  # Redirect after successful save
-        else:
-            messages.error(request, 'Please correct the errors below.')
+  if request.method == 'POST':
+      form = TransactionForm(request.POST)
+      if form.is_valid():
+          # Process form data here, e.g., save the order, send an email, etc.
+          transaction = form.save(commit=False)
+          transaction.product = product
+          transaction.user = request.user
+          transaction.save()
+          return redirect('main:show_main')
 
-    else:
-        form = CheckoutForm()
+  else:
+      form = TransactionForm()
 
-    context = {
-        'product': product,
-        'total_harga': total_harga,
-        'form': form
-    }
-    return render(request, "checkout.html", context)
+
+  context = {
+      'product': product,
+      'total_harga': total_harga,
+      'form': form
+  }
+  return render(request, "checkout.html", context)
+
+@login_required(login_url='/login')
+def view_transaction_history(request):
+  transaction_list = Transaction.objects.filter(user=request.user)
+
+  context = {'transaction_list': transaction_list}
+
+  return render(request, "transaction_history.html", context)
 
 @login_required
 @admin_required
@@ -254,6 +272,34 @@ def edit_product(request, id):
     context = {'form': form}
     return render(request, "edit_product.html", context)
 
+
+@csrf_exempt
+@require_POST
+def checkout_by_ajax(request, id):
+    name = strip_tags(request.POST.get("name"))
+    email = strip_tags(request.POST.get("email"))
+    phone_number = strip_tags(request.POST.get("phone_number"))
+    product = Product.objects.get(pk=id)
+    user = request.user
+    
+
+    new_transaction = Transaction(
+        name=name, email=email,
+        phone_number=phone_number,
+        product=product, user=user
+    )
+    new_transaction.save()
+
+    return HttpResponse(b"CREATED", status=201) 
+
+def get_product_data_for_checkout(request, id):
+    product = Product.objects.get(pk=id)
+    data = {
+        'name': product.name,
+        'gambar': product.gambar.url,
+        'harga': product.harga,
+    }
+    return JsonResponse(data)  
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     return render(request, 'product_detail.html', {'data': product})
@@ -278,5 +324,4 @@ def edit_profile(request):
     return render(request, 'edit_profile.html', {'form': form})
 
 
-   
    
