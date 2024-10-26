@@ -17,7 +17,9 @@
             <button style="background-color: blue; color: white;">Checkout</button>
         </a>
 
+        <a href="{% url 'main:create_report' data.pk %}">
         <button style="background-color: blue; color: white;">Complain</button>
+        </a>
     </div>
     {% if request.user.profile.role == "ADMIN" %}
     <h1>*Untuk admin*</h1>

@@ -80,6 +80,7 @@ def register(request):
   form = UserCreationForm()
 
   if request.method == "POST":
+    print("ok")
     form = UserCreationForm(request.POST)
 
     if form.is_valid():

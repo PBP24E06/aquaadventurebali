@@ -18,5 +18,5 @@ urlpatterns = [
     path('create-product', create_product, name='create_product'),
     path('delete/<uuid:id>', delete_product, name='delete_product'),
     path('edit-product/<uuid:id>', edit_product, name='edit_product'),
-    path('product/<int:product_id>/report/', create_report, name='create_report'),
+    path('product/<uuid:product_id>/report/', create_report, name='create_report'),
 ]
