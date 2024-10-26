@@ -315,6 +315,7 @@ def get_product_data_for_checkout(request, id):
         'harga': product.harga,
     }
     return JsonResponse(data)  
+
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
@@ -342,14 +343,22 @@ def edit_profile(request):
 @csrf_exempt
 @require_POST
 def create_review_by_ajax(request, id):
+    product = Product.objects.get(pk=id)
+    user = request.user
     rating = request.POST.get("rating")
     review_text = request.POST.get("review_text")
+    
+    print("Create review by ajax called")
 
     new_review = Review(
+       product = product,
+       user = user,
        rating = rating,
-       review_text = review_text
+       review_text = review_text,
     )
     new_review.save()
 
-    return HttpResponse(b"CREATED", status=201) 
-
+    print("new review saved")
+    
+    
+    return HttpResponse(b"CREATED", status=201)

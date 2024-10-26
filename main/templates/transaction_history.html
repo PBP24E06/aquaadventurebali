@@ -17,9 +17,7 @@
             <div class="flex flex-col gap-y-4">
                 <div>
                     <label class="block mb-2">Rating: <span id="ratingnumber">5.0</span></label>
-                    <input type="range" name="rating" id="rating" min="1" max="5" step="0.5" value="5" 
-                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" 
-                           oninput="updateRating(this.value)">
+                    <input type="range" name="rating" id="rating" min="1" max="5" step="0.5" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" oninput="updateRating(this.value)">
                 </div>
 
                 <div>
@@ -59,7 +57,7 @@
             </div>
             {% for transaction in transaction_list %}
             <div
-                class="box p-8 rounded-3xl bg-gray-100 grid grid-cols-6 mb-7 cursor-pointer transition-all duration-500 hover:bg-indigo-50 max-lg:max-w-xl max-lg:mx-auto">
+                class="box p-8 rounded-3xl bg-gray-100 grid grid-cols-6 mb-7 transition-all duration-500 hover:bg-indigo-50 max-lg:max-w-xl max-lg:mx-auto">
 
                 <div class="col-span-8 sm:col-span-4 lg:col-span-1 sm:row-span-4 lg:row-span-1">
                     <img src="{{ transaction.product.gambar.url }}" alt="product image" class="max-lg:w-auto max-sm:mx-auto rounded-xl object-cover">
@@ -75,7 +73,7 @@
                     {% if transaction.has_reviewed %}
                         <span class="text-gray-500 text-sm text-center">Already reviewed!</span>
                     {% else %}
-                        <button onclick="openReviewModal('{{ transaction.product.id }}')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+                        <button onclick="openReviewModal('{{ transaction.product.id }}')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200 cursor-pointer">
                             Write Review
                         </button>
                     {% endif %}
@@ -100,7 +98,9 @@
     function openReviewModal(productId) {
         document.getElementById('crudModalReview').classList.remove('hidden');
         document.getElementById('crudModalReview').classList.add('flex');
-        document.getElementById('reviewForm').dataset.productId = productId;
+
+        const form = document.getElementById("reviewForm");
+        form.dataset.productId = productId;
     }
 
     function closeReviewModal() {
@@ -112,21 +112,28 @@
     function createReview() {
         const form = document.querySelector("#reviewForm");
         const productId = form.dataset.productId;
-        fetch(`/create-review-by-ajax/${productId}/`, {
+        console.log("awal");  // Debug print
+
+        fetch(`create-review-by-ajax/${productId}`, {
             method: "POST",
             body: new FormData(form),
+            
         })
         .then(response => {
             if (response.ok) {
+                console.log("response ok");
                 return response.json();
             } else {
-                throw new Error('Failed creating review!')
+                console.log("Failed creating review");
+                throw new Error('Failed creating review!');
             }
         })
         .then(data => {
+            console.log("Akhir");
             closeReviewModal();
         })
         .catch(err => console.log("ERROR"));
+
         form.reset();
         return false;
     }
