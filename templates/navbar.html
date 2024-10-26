@@ -6,10 +6,10 @@
       </div>
 
       <div class="hidden md:flex items-center space-x-8">
-          <a href="{% url 'main:show_main' %}"><h1 class="text-center text-gray-300 hover:text-white">Home</h4></a>
+          <a href="{% url 'main:show_main' %}"><h1 class="text-center text-gray-300 hover:text-white">Home</h1></a>
       </div>
 
-      <div class="hidden md:flex items-center ml-auto">
+      <div class="hidden md:flex items-center ml-auto space-x-4">
           {% if user.is_authenticated %}
             <div class="text-center flex items-center space-x-2">
               <a class="text-center text-gray-300 hover:text-white" href="{% url 'main:view_transaction_history' %}">Transaction History</a>
@@ -31,42 +31,42 @@
                             <span>View Profile</span>
                         </div>
                     </a>
-                    <a href="{% url 'main:request_admin' %}" class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
+                    <a href="#" class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
                         <div class="flex items-center space-x-3">
-                            <span>Request Admin Access</span>
+                            <span>Cart</span>
                         </div>
                     </a>
-                    <a href=# class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
+                    <a href="#" class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
                         <div class="flex items-center space-x-3">
                             <span>Wishlist</span>
                         </div>
                     </a>
-                    <a href="{% url 'main:view_transaction_history' %}" class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
+                    <a href="#" class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
                         <div class="flex items-center space-x-3">
-                            <span>Transaction History</span>
+                            <span>Purchased Products</span>
                         </div>
                     </a>
                 </div>
             </div>
-            </div>
-
-            <!-- Moved logout button outside the flex container -->
-            <a href="{% url 'main:logout_user' %}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-300 ml-12">
-              Logout
-            </a>                
+          </div>
+          
+          <a href="{% url 'main:logout_user' %}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-300 ml-12">
+            Logout
+          </a>
 
           {% else %} 
             <a href="{% url 'main:login_user' %}" class="text-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300">
               Login
             </a>
-            <a href="{% url 'main:register' %}" class="text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300 ml-4">
+            <a href="{% url 'main:register' %}" class="text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300">
               Register
             </a>
           {% endif %}
-      </div>
+        </div>
 
+      <!-- Menu Mobile -->
       <div class="md:hidden flex items-center">
-        <button class="mobile-menu-button">
+        <button class="mobile-menu-button" onclick="toggleMobileMenu()">
           <svg class="w-6 h-6 text-white" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
@@ -74,24 +74,41 @@
       </div>
     </div>
   </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden bg-gray-800">
+      <a href="{% url 'main:show_main' %}" class="block px-4 py-2 text-gray-300 hover:text-white">Home</a>
+      {% if user.is_authenticated %}
+          <a href="{% url 'main:view_transaction_history' %}" class="block px-4 py-2 text-gray-300 hover:text-white">Transaction History</a>
+          <a href="{% url 'main:profile' %}" class="block px-4 py-2 text-gray-300 hover:text-white">View Profile</a> 
+          <a href="" class="block px-4 py-2 text-gray-300 hover:text-white">Cart</a> 
+          <a href="" class="block px-4 py-2 text-gray-300 hover:text-white">Wishlist</a> 
+          <a href="" class="block px-4 py-2 text-gray-300 hover:text-white">Purchased Products</a> 
+          <a href="{% url 'main:logout_user' %}" class="block px-4 py-2 bg-red-500 hover:bg-red-600 text-white">Logout</a>
+      {% else %}
+          <a href="{% url 'main:login_user' %}" class="block px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white">Login</a>
+          <a href="{% url 'main:register' %}" class="block px-4 py-2 bg-green-500 hover:bg-green-600 text-white">Register</a>
+      {% endif %}
+  </div>
 </nav>
 
-  <script>
-    function toggleMenu() {
-        const menu = document.getElementById('profileMenu');
-        if (menu.classList.contains('hidden')) {
-            menu.classList.remove('hidden');
-        } else {
-            menu.classList.add('hidden');
-        }
-    }
-    
-    document.addEventListener('click', function(event) {
-        const menu = document.getElementById('profileMenu');
-        const profilePic = event.target.closest('[onclick="toggleMenu()"]');
-        
-        if (!profilePic && !menu.contains(event.target) && !menu.classList.contains('hidden')) {
-            menu.classList.add('hidden');
-        }
-    });
-    </script>
+<script>
+  function toggleMenu() {
+      const menu = document.getElementById('profileMenu');
+      menu.classList.toggle('hidden');
+  }
+
+  function toggleMobileMenu() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      mobileMenu.classList.toggle('hidden');
+  }
+  
+  document.addEventListener('click', function(event) {
+      const menu = document.getElementById('profileMenu');
+      const profilePic = event.target.closest('[onclick="toggleMenu()"]');
+      
+      if (!profilePic && !menu.contains(event.target) && !menu.classList.contains('hidden')) {
+          menu.classList.add('hidden');
+      }
+  });
+</script>

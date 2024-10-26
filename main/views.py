@@ -25,6 +25,7 @@ from django.contrib.auth.models import User
 from main.forms import TransactionForm
 from main.forms import ProductForm
 from django.utils.html import strip_tags
+import os
 
 
 
@@ -242,14 +243,14 @@ def view_transaction_history(request):
 @admin_required
 @csrf_exempt
 @require_POST
-def create_product(request):
+def add_product_ajax(request):
     name = request.POST.get("name")
     kategori = request.POST.get("kategori")
     harga = request.POST.get("harga")
     toko = request.POST.get("toko")
     alamat = request.POST.get("alamat")
     kontak = request.POST.get("kontak")
-    gambar = request.FILES.get("gambar") 
+    gambar = request.FILES.get("gambar")
 
     new_product = Product(
         name=name,
@@ -270,6 +271,11 @@ def create_product(request):
 @admin_required
 def delete_product(request, id):
     product = Product.objects.get(pk = id)
+    if product.gambar:
+        gambar_path = product.gambar.path
+        if os.path.isfile(gambar_path):
+            os.remove(gambar_path)
+
     product.delete()
     return HttpResponseRedirect(reverse('main:show_main'))
 
