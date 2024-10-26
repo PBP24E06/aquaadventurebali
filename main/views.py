@@ -127,7 +127,7 @@ def make_admin(request, user_id):
   
 @login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
-  
+
   if request.user.profile.role == 'ADMIN':
     messages.info(request, 'You are already an admin!')
     return redirect('main:show_main')
@@ -339,5 +339,17 @@ def edit_profile(request):
 
     return render(request, 'edit_profile.html', {'form': form})
 
+@csrf_exempt
+@require_POST
+def create_review_by_ajax(request, id):
+    rating = request.POST.get("rating")
+    review_text = request.POST.get("review_text")
 
-   
+    new_review = Review(
+       rating = rating,
+       review_text = review_text
+    )
+    new_review.save()
+
+    return HttpResponse(b"CREATED", status=201) 
+
