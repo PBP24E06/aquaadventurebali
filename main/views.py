@@ -7,14 +7,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import datetime
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
 from main.models import Product, UserProfile, Review
 from main.forms import ReviewForm, UserProfileForm
-
 
 from main.models import Product, UserProfile
 from django.core.exceptions import PermissionDenied
@@ -26,7 +25,6 @@ from main.forms import ProductForm,CheckoutForm
 
 def show_main(request):
     products = Product.objects.all()
-
     # Filtering by category
     kategori_filter = request.GET.get('kategori')
 
@@ -204,15 +202,31 @@ def checkout(request, id):
 
 @login_required
 @admin_required
+@csrf_exempt
+@require_POST
 def create_product(request):
-  form = ProductForm(request.POST or None )
+    name = request.POST.get("name")
+    kategori = request.POST.get("kategori")
+    harga = request.POST.get("harga")
+    toko = request.POST.get("toko")
+    alamat = request.POST.get("alamat")
+    kontak = request.POST.get("kontak")
+    gambar = request.FILES.get("gambar")  # Pastikan menggunakan request.FILES untuk upload file
 
-  if form.is_valid() and request.method == "POST":
-    form.save()
-    return redirect('main:show_main')
-  
-  context = {'form': form}
-  return render(request, "create_product.html", context)
+    new_product = Product(
+        name=name,
+        kategori=kategori,
+        harga=harga,
+        toko=toko,
+        alamat=alamat,
+        kontak=kontak,
+        gambar=gambar
+    )
+    new_product.save()
+
+    return HttpResponse(b"CREATED", status=201)
+
+
 
 @login_required
 @admin_required
