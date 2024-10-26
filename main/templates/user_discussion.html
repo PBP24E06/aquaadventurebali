@@ -9,6 +9,32 @@
 {% include "navbar.html" %}
 
 <div style="padding: 20px;">
+    <div class="container" style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+        <h1>Profil Pengguna</h1>
+        
+        <div style="text-align: center;">
+            {% if profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user.username }}'s Profile Picture" style="width: 150px; height: 150px; border-radius: 75px; border: 2px solid #007bff;">
+            {% else %}
+                <i class="fas fa-user-circle" style="font-size: 150px; color: #007bff;"></i>
+            {% endif %}
+        </div>
+        
+        <h2 style="text-align: center; margin-top: 15px;">{{ profile.user.username }}</h2>
+        <p><strong>Role:</strong> {{ profile.role }}</p>
+        <p><strong>Alamat:</strong> {{ profile.alamat|default:"Belum diisi" }}</p>
+        <p><strong>Tanggal Lahir:</strong> {{ profile.birthdate|date:"Y-m-d"|default:"Belum diisi" }}</p>
+        <p><strong>Nomor Telepon:</strong> {{ profile.phone_number|default:"Belum diisi" }}</p>
+        <p><strong>Deskripsi Diri:</strong> {{ profile.bio|default:"Belum diisi" }}</p>
+        <p><strong>Tanggal Bergabung:</strong> {{ profile.date_joined|date:"Y-m-d" }}</p>
+        
+        {% if user_requested.id == user.id %}
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="{% url 'main:edit_profile' %}" style="background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; text-decoration: none;">Edit Profil</a>
+        </div>
+        {% endif %}
+    </div>
+
     <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 20px;">Diskusi Pengguna</h2>
     
     <div style="display: flex; flex-direction: column; gap: 15px;">
@@ -38,9 +64,11 @@
 
                         {% if discussion.user == request.user %}
                         <div style="margin-top: 10px;">
+                            {% if user_requested.id == user.id %}
                             <button class="delete-btn" data-id="{{ discussion.id }}" style="background-color: #e74c3c; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;">
                                 Delete
                             </button>
+                            {% endif %}
                         </div>
                         {% endif %}
                     </div>

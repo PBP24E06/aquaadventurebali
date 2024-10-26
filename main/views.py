@@ -281,11 +281,10 @@ def add_discussion_or_reply(request, product_id):
         return HttpResponse(b"CREATED", status=201)
     else:
         return HttpResponse("Form data invalid", status=400)
-    
-from django.core.paginator import Paginator
-from django.http import JsonResponse
-from .models import Forum
-from django.core import serializers
+
+def show_user_profile_json(request, userId):
+   user_profile = UserProfile.objects.filter(user=userId)
+   return HttpResponse(serializers.serialize("json", user_profile), content_type="application/json")
 
 def show_forum_json(request, product_id):
     # Get all discussions related to the product
@@ -324,12 +323,16 @@ def show_forum_json(request, product_id):
 
 def show_user_discussion(request, user_id):
 
+    user_requested = request.user
     user = get_object_or_404(User, pk=user_id)
     discussions = Forum.objects.filter(user=user).select_related('product')
+    user_profile = UserProfile.objects.filter(user=user_id)
 
     context = {
+        'user_requested': user_requested,
         'user': user,
         'discussions': discussions,
+        'profile': user_profile
     }
     
     return render(request, 'user_discussion.html', context)
