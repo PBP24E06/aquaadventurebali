@@ -37,10 +37,10 @@
     }
 
     const csrftoken = getCookie('csrftoken');
-    const productId = "{{ product.id }}";
+    const productId = "{{ data.id }}";
 
     async function getForumEntries() {
-        return fetch("{% url 'main:show_forum_json' product.id %}").then(res => res.json());
+        return fetch("{% url 'main:show_forum_json' data.id %}").then(res => res.json());
     }
 
     async function refreshForum() {

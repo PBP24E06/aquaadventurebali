@@ -1,8 +1,52 @@
 {% extends "base.html" %}
 {% block content %}
 {% include "navbar.html" %}
-<div style="margin-top: 100px;">
-    {% include 'card_product.html' with data=product %}
-    {% include 'product_discussion.html' %}
+
+<div style="padding: 20px; max-width: 1200px; margin: auto;">
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Bagian Gambar Produk -->
+        <div style="flex: 1; min-width: 300px;">
+            <img src="{{ data.gambar }}" alt="{{ data.name }}" style="width: 100%; height: auto; border-radius: 10px;">
+        </div>
+        
+        <!-- Bagian Informasi Produk -->
+        <div style="flex: 2; min-width: 300px;">
+            <h1 style="font-size: 2em; color: #333;"><strong>{{ data.name }}</strong></h1>
+            <p style="color: #888; font-size: 1.1em;"><strong>Kategori:</strong> {{ data.kategori }}</p>
+            
+            <!-- Harga -->
+            <p style="font-size: 1.8em; color: #333; font-weight: bold; margin: 15px 0;">Rp {{ data.harga }}</p>
+            
+            <!-- Detail Toko dan Kontak -->
+            <p style="margin: 5px 0; color: #666;"><strong>Toko:</strong> {{ data.toko }}</p>
+            <p style="margin: 5px 0; color: #666;"><strong>Alamat:</strong> {{ data.alamat }}</p>
+            <p style="margin: 5px 0; color: #666;"><strong>Kontak:</strong> {{ data.kontak }}</p>
+            
+            <!-- Tombol Aksi -->
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <a href="{% url 'main:all_review' data.pk %}" style="text-decoration: none;">
+                    <button style="background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Ulasan</button>
+                </a>
+                <a href="{% url 'main:checkout' data.pk %}" style="text-decoration: none;">
+                    <button style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Checkout</button>
+                </a>
+                <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
+            </div>
+            {% include 'product_discussion.html' %}
+
+            <!-- Tombol Khusus Admin -->
+            {% if request.user.profile.role == "ADMIN" %}
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <a href="{% url 'main:delete_product' data.pk %}" style="text-decoration: none;">
+                        <button style="background-color: #dc3545; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Delete</button>
+                    </a>
+                    <a href="{% url 'main:edit_product' data.pk %}" style="text-decoration: none;">
+                        <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Edit</button>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
 {% endblock content %}

@@ -10,6 +10,13 @@ class UserProfile(models.Model):
         ('ADMIN', 'Admin'),
     )
     role = models.CharField(max_length=10, choices=roles, default='CUSTOMER')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)  # Gambar profil opsional
+    alamat = models.TextField(blank=True, null=True)  # Alamat opsional
+    birthdate = models.DateField(null=True, blank=True)  # Tanggal lahir opsional
+    phone_number = models.CharField(max_length=15, null=True, blank=True)  # Nomor telepon opsional
+    bio = models.TextField(null=True, blank=True)  # Deskripsi diri opsional
+    date_joined = models.DateTimeField(auto_now_add=True)  
+
 
     def promote_admin(self):
         if self.role == 'CUSTOMER':
@@ -30,12 +37,13 @@ class Product(models.Model):
     toko = models.CharField(max_length=255)
     alamat = models.TextField()
     kontak = models.CharField(max_length=255)
-    gambar = models.URLField()
+    gambar = models.ImageField()
 
     def average_rating(self):
         reviews = self.reviews.all() 
-        if len(reviews) > 0:
-            return sum(review.rating for review in reviews) / len(reviews)
+        if reviews.count() > 0:
+            avg = sum(review.rating for review in reviews) / len(reviews)
+            return f"{avg:.2f}"
         return 0
 
 
@@ -44,6 +52,9 @@ class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # User yang membuat review
     rating = models.FloatField(validators=[MinValueValidator(1.0), MaxValueValidator(5.0)])
     review_text = models.TextField()
+
+    class Meta:
+        unique_together = ('product', 'user')
 
 
 class Forum(models.Model):

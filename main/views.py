@@ -12,6 +12,10 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
+from main.models import Product, UserProfile, Review
+from main.forms import ReviewForm, UserProfileForm
+
+
 from main.models import Product, UserProfile, Forum
 from django.core.exceptions import PermissionDenied
 from functools import wraps
@@ -51,12 +55,6 @@ def show_main(request):
     
     return render(request, "main.html", context)
 
-def show_product(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    context = {
-       'product': product,
-    }
-    return render(request, 'product_detail.html', context)
 
 def login_user(request):
   if request.method == 'POST':
@@ -95,7 +93,7 @@ def register(request):
     
 def logout_user(request):
     logout(request)
-    response = HttpResponseRedirect(reverse('main:login_user'))
+    response = HttpResponseRedirect(reverse('main:show_main'))
     response.delete_cookie('last_login')
     return response
 
@@ -121,7 +119,7 @@ def make_admin(request, user_id):
 
 
   
-# @login_required
+@login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
   if request.method == 'POST':
     admin_password = request.POST.get('admin_password')
@@ -142,10 +140,42 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
   
   return render(request, 'request_admin.html', {})
 
+@login_required
+def create_review(request, id):
+  form = ReviewForm(request.POST or None)
+  product = Product.objects.get(pk=id)
+  if request.method == "POST":
+    print("POST data:", request.POST)  # Debug print
+    if form.is_valid():
+      review = form.save(commit=False)
+      review.user = request.user
+      review.product = product
+      review.save()
+      return redirect("main:show_main")
+    else:
+      print( form.errors)
+  
+  context = {
+    "form": form,
+    "product": product
+  }
+     
+  return render(request, "review_form.html", context)
+
+
 def show_json(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+
+def all_review(request, id):
+    product = Product.objects.get(pk=id)
+    reviews = product.reviews.all()
+    context = {
+      "product": product,
+      "reviews": reviews
+    }
+    return render(request, "all_review.html", context)
 
 def checkout(request, id):
     # Use get_object_or_404 to handle non-existing products gracefully
@@ -206,6 +236,30 @@ def edit_product(request, id):
 
     context = {'form': form}
     return render(request, "edit_product.html", context)
+
+def product_detail(request, id):
+    product = get_object_or_404(Product, id=id)
+    return render(request, 'product_detail.html', {'data': product})
+
+@login_required
+def profile_view(request):
+    profile = get_object_or_404(UserProfile, user=request.user)
+    return render(request, 'profile.html', {'profile': profile})
+
+@login_required
+def edit_profile(request):
+    profile = request.user.profile
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('main:profile')  # Redirect ke halaman profil setelah disimpan
+    else:
+        form = UserProfileForm(instance=profile)
+
+    return render(request, 'edit_profile.html', {'form': form})
+   
 
 @require_POST
 @login_required
