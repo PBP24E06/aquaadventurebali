@@ -36,7 +36,14 @@
                 </div>
 
                 <div class="col-span-1 sm:col-span-4 lg:col-span-1 flex items-center justify-center">
-                    <p class="font-semibold text-sm leading-8 text-black">{{ transaction.id }}</p>
+                    {% if transaction.has_reviewed %}
+                        <span class="text-gray-500 text-sm text-center">Already reviewed!</span>
+                    {% else %}
+                        <a href="{% url 'main:create_review' transaction.product.id %}" 
+                        class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+                            Write Review
+                        </a>
+                    {% endif %}
                 </div>
                 <div class="col-span-8 sm:col-span-4 lg:col-span-1 flex items-center justify-center ">
                     <p class="font-semibold text-base leading-8 text-indigo-600 text-center whitespace-normal break-words max-w-xs">{{ transaction.checkout_time }}</p>
