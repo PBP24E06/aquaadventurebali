@@ -1,34 +1,37 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import datetime
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
-from main.models import Product, UserProfile, Review
+from main.models import Product, UserProfile, Review, Transaction
 from main.forms import ReviewForm
 
+from main.models import Product, UserProfile, Review
+from main.forms import ReviewForm, UserProfileForm
 
-from main.models import Product, UserProfile
+from main.models import Product, UserProfile, Report
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
-from main.forms import ProductForm,CheckoutForm
-from .forms import ReportForm
-from .models import Report, Product
+from main.models import Report, Product
+from main.forms import TransactionForm
+from main.forms import ProductForm, ReportForm
+from django.utils.html import strip_tags
+import os
 
 
 
 def show_main(request):
     products = Product.objects.all()
-
     # Filtering by category
     kategori_filter = request.GET.get('kategori')
 
@@ -39,6 +42,9 @@ def show_main(request):
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
+    for product in products:
+        product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
+
     if min_price:
         products = products.filter(harga__gte=min_price)
 
@@ -46,8 +52,10 @@ def show_main(request):
         products = products.filter(harga__lte=max_price)
 
     print(f"kategori: {kategori_filter}, min: {min_price}, max: {max_price}")
-
     print(f"Size: {products.count()}")
+
+    for product in products:
+        product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
 
     context = {
        "data": products,
@@ -164,11 +172,17 @@ def create_review(request, id):
   return render(request, "review_form.html", context)
 
 
-def show_json(request):
+def show_json_product(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+def show_json_transaction(request):
+    data = Transaction.objects.filter(user=request.user)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+
+
+@login_required(login_url='/login')
 def all_review(request, id):
     product = Product.objects.get(pk=id)
     reviews = product.reviews.all()
@@ -178,49 +192,85 @@ def all_review(request, id):
     }
     return render(request, "all_review.html", context)
 
+@login_required(login_url='/login')
 def checkout(request, id):
-    # Use get_object_or_404 to handle non-existing products gracefully
-    product = Product.objects.get(pk=id)
-    total_harga = product.harga + 10000  # Add shipping cost
+  product = Product.objects.get(pk=id)
+  total_harga = product.harga + 10000
 
-    if request.method == 'POST':
-        form = CheckoutForm(request.POST)
-        if form.is_valid():
-            cart = form.save(commit=False)  # Create instance without saving
-            cart.product = product  # Associate the product with the cart
-            cart.user = request.user  # Set the current user (assuming you want to save this)
-            cart.save()  # Save the cart instance to the database
-            messages.success(request, 'Checkout successful!')  # Provide feedback
-            return redirect('some_success_url')  # Redirect after successful save
-        else:
-            messages.error(request, 'Please correct the errors below.')
+  if request.method == 'POST':
+      form = TransactionForm(request.POST)
+      if form.is_valid():
+          # Process form data here, e.g., save the order, send an email, etc.
+          transaction = form.save(commit=False)
+          transaction.product = product
+          transaction.user = request.user
+          transaction.save()
+          return redirect('main:show_main')
 
-    else:
-        form = CheckoutForm()
+  else:
+      form = TransactionForm()
 
-    context = {
-        'product': product,
-        'total_harga': total_harga,
-        'form': form
+
+  context = {
+      'product': product,
+      'total_harga': total_harga,
+      'form': form
+  }
+  return render(request, "checkout.html", context)
+
+@login_required(login_url='/login')
+def view_transaction_history(request):
+  transaction_list = Transaction.objects.filter(user=request.user)
+
+  reviewed_products = set(Review.objects.filter(user=request.user).values_list('product_id', flat=True))
+
+  for transaction in transaction_list:
+    transaction.has_reviewed = transaction.product.id in reviewed_products
+
+  context = {
+    'transaction_list': transaction_list,
+    'user': request.user
     }
-    return render(request, "checkout.html", context)
+
+  return render(request, "transaction_history.html", context)
 
 @login_required
 @admin_required
-def create_product(request):
-  form = ProductForm(request.POST or None )
+@csrf_exempt
+@require_POST
+def add_product_ajax(request):
+    name = request.POST.get("name")
+    kategori = request.POST.get("kategori")
+    harga = request.POST.get("harga")
+    toko = request.POST.get("toko")
+    alamat = request.POST.get("alamat")
+    kontak = request.POST.get("kontak")
+    gambar = request.FILES.get("gambar")
 
-  if form.is_valid() and request.method == "POST":
-    form.save()
-    return redirect('main:show_main')
-  
-  context = {'form': form}
-  return render(request, "create_product.html", context)
+    new_product = Product(
+        name=name,
+        kategori=kategori,
+        harga=harga,
+        toko=toko,
+        alamat=alamat,
+        kontak=kontak,
+        gambar=gambar
+    )
+    new_product.save()
+
+    return HttpResponse(b"CREATED", status=201)
+
+
 
 @login_required
 @admin_required
 def delete_product(request, id):
     product = Product.objects.get(pk = id)
+    if product.gambar:
+        gambar_path = product.gambar.path
+        if os.path.isfile(gambar_path):
+            os.remove(gambar_path)
+
     product.delete()
     return HttpResponseRedirect(reverse('main:show_main'))
 
@@ -259,5 +309,56 @@ def create_report(request, product_id):
         'product': product
     }
     return render(request, 'create_report.html', context)
-   
+
+@csrf_exempt
+@require_POST
+def checkout_by_ajax(request, id):
+    name = strip_tags(request.POST.get("name"))
+    email = strip_tags(request.POST.get("email"))
+    phone_number = strip_tags(request.POST.get("phone_number"))
+    product = Product.objects.get(pk=id)
+    user = request.user
+    
+
+    new_transaction = Transaction(
+        name=name, email=email,
+        phone_number=phone_number,
+        product=product, user=user
+    )
+    new_transaction.save()
+
+    return HttpResponse(b"CREATED", status=201) 
+
+def get_product_data_for_checkout(request, id):
+    product = Product.objects.get(pk=id)
+    data = {
+        'name': product.name,
+        'gambar': product.gambar.url,
+        'harga': product.harga,
+    }
+    return JsonResponse(data)  
+def product_detail(request, id):
+    product = get_object_or_404(Product, id=id)
+    return render(request, 'product_detail.html', {'data': product})
+
+@login_required
+def profile_view(request):
+    profile = get_object_or_404(UserProfile, user=request.user)
+    return render(request, 'profile.html', {'profile': profile})
+
+@login_required
+def edit_profile(request):
+    profile = request.user.profile
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('main:profile')  # Redirect ke halaman profil setelah disimpan
+    else:
+        form = UserProfileForm(instance=profile)
+
+    return render(request, 'edit_profile.html', {'form': form})
+
+
    

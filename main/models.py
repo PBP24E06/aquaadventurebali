@@ -10,6 +10,16 @@ class UserProfile(models.Model):
         ('ADMIN', 'Admin'),
     )
     role = models.CharField(max_length=10, choices=roles, default='CUSTOMER')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True, default='ikon_botak/foto_ikon.jpg')
+    alamat = models.TextField(blank=True, null=True)  # Alamat opsional
+    birthdate = models.DateField(null=True, blank=True)  # Tanggal lahir opsional
+    phone_number = models.CharField(max_length=15, null=True, blank=True)  # Nomor telepon opsional
+    bio = models.TextField(null=True, blank=True)  # Deskripsi diri opsional
+    date_joined = models.DateTimeField(auto_now_add=True)  
+
+    @property
+    def has_reviewed_product(self, product):
+        return Review.objects.filter(user=self.user, product=product).exists()
 
     def promote_admin(self):
         if self.role == 'CUSTOMER':
@@ -30,13 +40,13 @@ class Product(models.Model):
     toko = models.CharField(max_length=255)
     alamat = models.TextField()
     kontak = models.CharField(max_length=255)
-    gambar = models.ImageField()
+    gambar = models.ImageField(upload_to="static/image/")
 
     def average_rating(self):
         reviews = self.reviews.all() 
         if reviews.count() > 0:
             avg = sum(review.rating for review in reviews) / len(reviews)
-            return f"{avg:.2f}"
+            return f"{avg:.1f}"
         return 0
 
 
@@ -61,13 +71,15 @@ class Wishlist(models.Model):
     user = models.ForeignKey(User, related_name="wishlist", on_delete=models.CASCADE)  # Relasi balik ke user
     
 
-class Cart(models.Model):
+class Transaction(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name="cart", on_delete=models.CASCADE)  # Relasi balik ke user
+    user = models.ForeignKey(User, related_name="transaction", on_delete=models.CASCADE)  # Relasi balik ke user
     name = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=30)
-    time = models.DateField(auto_now_add=True)
+    phone_number = models.CharField(max_length=255)
+    checkout_time = models.DateTimeField(auto_now_add=True)
 
 
 class Report(models.Model):
