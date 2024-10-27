@@ -158,8 +158,8 @@ let numPage = 0;
 
 
 const productEntries = JSON.parse(`{{ data|safe }}`);
-const hasPrevious = `{{ has_previous|safe }}`;
-const hasNext = `{{ has_next|safe }}`;
+const hasPrevious = `{{ has_previous|yesno:"true,false" }}` === "true";
+const hasNext = `{{ has_next|yesno:"true,false" }}` === "true";
 currentPage = `{{ current_page|safe }}`;
 const numPages = `{{ num_pages|safe }}`;
 const pageStatus = {
