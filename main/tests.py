@@ -215,6 +215,14 @@ class TestReview(TestCase):
         
         self.assertEqual(response.status_code, 201)
 
+    def test_all_review_product(self):
+        url = reverse('main:all_review', args=[self.product.id])
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'all_review.html')
+
     
 class TestWishlist(TestCase):
     def setUp(self):
