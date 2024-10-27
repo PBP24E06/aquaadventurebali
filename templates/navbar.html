@@ -10,14 +10,6 @@
           <a href="{% url 'main:show_main' %}"><h1 class="text-center text-gray-300 hover:text-white">Home</h1></a>
       </div>
 
-        {% if user.is_authenticated %}
-          <div class="hidden md:flex mx-4  space-x-8">
-            <a href="{% url 'main:show_wishlist' %}"><h1 class="text-center text-gray-300 hover:text-white">Wishlist</h4></a>
-          </div>
-        {% endif %}
-
-
-        
 
       <div class="hidden md:flex items-center ml-auto space-x-4">
           {% if user.is_authenticated %}
@@ -48,7 +40,7 @@
                             <span>Request Admin</span>
                         </div>
                     </a>
-                    <a href="#" class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
+                    <a href="{% url 'main:show_wishlist' %}" class="block px-6 py-3 text-base text-gray-700 hover:bg-gray-100 transition duration-150">
                         <div class="flex items-center space-x-3">
                             <span>Wishlist</span>
                         </div>
