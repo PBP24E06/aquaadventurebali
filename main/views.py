@@ -129,7 +129,7 @@ def admin_required(view_func):  # Decorator untuk autentikasi edit & remove prod
     raise PermissionDenied
   return _wrapped_view
 
-@login_required
+@login_required(login_url='/login')
 def make_admin(request, user_id):  
   if request.user.profile.role == 'CUSTOMER':
     user_profile = UserProfile.objects.get(user_id=user_id)
@@ -140,7 +140,7 @@ def make_admin(request, user_id):
 
 
   
-@login_required
+@login_required(login_url='/login')
 def request_admin(request):  # Form untuk mengubah user menjadi admin
 
   if request.user.profile.role == 'ADMIN':
@@ -167,7 +167,7 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
   return render(request, 'request_admin.html', {})
      
 
-@login_required
+@login_required(login_url='/login')
 def create_review(request, id):
   form = ReviewForm(request.POST or None)
   product = Product.objects.get(pk=id)
@@ -343,12 +343,12 @@ def product_detail(request, id):
     product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
     return render(request, 'product_detail.html', {'data': product})
 
-@login_required
+@login_required(login_url='/login')
 def profile_view(request):
     profile = get_object_or_404(UserProfile, user=request.user)
     return render(request, 'profile.html', {'profile': profile})
 
-@login_required
+@login_required(login_url='/login')
 def edit_profile(request):
     profile = request.user.profile
 
@@ -524,6 +524,7 @@ def show_wishlist(request):
     
     return render(request, "wishlist.html", context)
 
+
 @csrf_exempt
 def filter_wishlist(request):
     wishlists = Wishlist.objects.filter(user=request.user)
@@ -540,6 +541,7 @@ def filter_wishlist(request):
     print(data)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+
 def delete_wishlist(request, id):
     product = Product.objects.get(pk=id)
     user = request.user
@@ -547,6 +549,7 @@ def delete_wishlist(request, id):
     wishlist.delete()
     return HttpResponseRedirect(reverse('main:show_wishlist'))
 
+@login_required(login_url='/login')
 def add_wishlist(request, id):
     product = Product.objects.get(pk=id)
     user = request.user
