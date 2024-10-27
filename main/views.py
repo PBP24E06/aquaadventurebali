@@ -32,7 +32,7 @@ from main.models import Product, UserProfile, Forum
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
-from main.forms import ProductForm,CheckoutForm, ForumForm
+from main.forms import ProductForm, ForumForm
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from urllib.parse import unquote
