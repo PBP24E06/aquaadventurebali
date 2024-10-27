@@ -45,4 +45,4 @@ jobs:
             echo "Error: Unable to push changes. Please check the error message above and resolve any conflicts manually."
             exit 1
           fi
-          echo "Push successful with output: $push_output"
+          echo "Push successful with output: $push_output"\
