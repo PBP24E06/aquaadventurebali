@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
 {% include "navbar.html" %}
 
@@ -8,110 +9,115 @@
     <!-- Admin section -->
     {% if request.user.profile.role == "ADMIN" %}
     <div class="m-2">
-        <h1>*Untuk admin*</h1>
-        <button data-modal-target="crudModal" data-modal-toggle="crudModal" class="btn bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105" onclick="showModal();">
+        <button data-modal-target="crudModal" data-modal-toggle="crudModal" class="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 hover:bg-blue-600 transition duration-200" onclick="showModal();">
             Add Product
         </button>
     </div>
     {% endif %}
 
+    <!-- Filter Button -->
+    <div class="m-2">
+      <button id="toggleFilter" class="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 hover:bg-blue-600 transition duration-200">
+          Tampilkan Filter
+      </button>
+    </div>
+
     <!-- Filter Form -->
-    <form method="get" class="flex items-center space-x-4 mb-6 mt-4">
+    <div id="filterForm" class="hidden mb-6">
+      <form method="get" class="flex flex-col p-6 bg-white shadow-lg rounded-lg transition-transform">
+      
         <!-- Category Filter -->
-        <div>
-            <label for="kategori" class="block text-sm font-medium text-gray-700">Kategori</label>
-            <select id="kategori" name="kategori" class="block w-full p-2 border border-gray-300 rounded-md">
-                <option value="">All</option>
+        <div class="mb-4">
+          <label for="kategori" class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+            <select id="kategori" name="kategori" class="block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+              <option value="">All</option>
                 {% for kategori in category_list %}
-                    <option value="{{ kategori }}" {% if request.GET.kategori == kategori %}selected{% endif %}>
-                        {{ kategori }}
-                    </option>
+                  <option value="{{ kategori }}" {% if request.GET.kategori == kategori %}selected{% endif %}>
+                    {{ kategori }}
+                  </option>
                 {% endfor %}
             </select>
         </div>
 
         <!-- Price Filter -->
-        <div>
-            <label for="min_price" class="block text-sm font-medium text-gray-700">Harga Min</label>
-            <input type="number" name="min_price" id="min_price" class="block w-full p-2 border border-gray-300 rounded-md" value="{{ request.GET.min_price }}">
+        <div class="mb-4">
+          <label for="min_price" class="block text-sm font-medium text-gray-700 mb-2">Harga Min</label>
+          <input type="number" name="min_price" id="min_price" class="block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="0" value="{{ request.GET.min_price }}">
         </div>
 
-        <div>
-            <label for="max_price" class="block text-sm font-medium text-gray-700">Harga Max</label>
-            <input type="number" name="max_price" id="max_price" class="block w-full p-2 border border-gray-300 rounded-md" value="{{ request.GET.max_price }}">
+        <div class="mb-4">
+          <label for="max_price" class="block text-sm font-medium text-gray-700 mb-2">Harga Max</label>
+          <input type="number" name="max_price" id="max_price" class="block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="0" value="{{ request.GET.max_price }}">
         </div>
 
         <!-- Filter Button -->
-        <div class="pt-5">
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Filter</button>
-        </div>
-    </form>
-
-    <!-- Products Section -->
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;">
-        {% for data in data %}
-            {% include 'card_product.html' with data=data %}
-        {% empty %}
-            <p>No products found.</p>
-        {% endfor %}
-    </div>
-</div>
-
-
-<div id="crudModal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 w-full flex items-center justify-center bg-gray-800 bg-opacity-50 overflow-x-hidden overflow-y-auto transition-opacity duration-300 ease-out">
-  <div id="crudModalContent" class="relative bg-white rounded-lg shadow-lg w-5/6 sm:w-3/4 md:w-1/2 lg:w-1/3 mx-4 sm:mx-0 transform scale-95 opacity-0 transition-transform transition-opacity duration-300 ease-out">
-    <!-- Modal header -->
-    <div class="flex items-center justify-between p-4 border-b rounded-t">
-      <h3 class="text-xl font-semibold text-gray-900">
-        Add New Product
-      </h3>
-      <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center" id="closeModalBtn">
-        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-        </svg>
-        <span class="sr-only">Close modal</span>
-      </button>
-    </div>
-    <!-- Modal body -->
-    <div class="px-6 py-4 space-y-6 form-style">
-      <form id="productForm" enctype="multipart/form-data">
-        <div class="mb-4">
-          <label for="name" class="block text-sm font-medium text-gray-700">Product Name</label>
-          <input type="text" id="name" name="name" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter product name" required>
-        </div>
-        <div class="mb-4">
-          <label for="kategori" class="block text-sm font-medium text-gray-700">Category</label>
-          <input type="text" id="kategori" name="kategori" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter product category" required>
-        </div>
-        <div class="mb-4">
-          <label for="harga" class="block text-sm font-medium text-gray-700">Price</label>
-          <input type="number" id="harga" name="harga" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter product price" required>
-        </div>
-        <div class="mb-4">
-          <label for="toko" class="block text-sm font-medium text-gray-700">Store Name</label>
-          <input type="text" id="toko" name="toko" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter store name" required>
-        </div>
-        <div class="mb-4">
-          <label for="alamat" class="block text-sm font-medium text-gray-700">Address</label>
-          <textarea id="alamat" name="alamat" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter store address" required></textarea>
-        </div>
-        <div class="mb-4">
-          <label for="kontak" class="block text-sm font-medium text-gray-700">Contact</label>
-          <input type="text" id="kontak" name="kontak" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter contact information" required>
-        </div>
-        <div class="mb-4">
-          <label for="gambar" class="block text-sm font-medium text-gray-700">Image</label>
-          <input type="file" id="gambar" name="gambar" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" required>
+        <div class="mt-4">
+          <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-md w-full hover:bg-blue-700 transition duration-200">Filter</button>
         </div>
       </form>
     </div>
-    <!-- Modal footer -->
-    <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 p-6 border-t border-gray-200 rounded-b justify-center md:justify-end">
-      <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg" id="cancelButton">Cancel</button>
-      <button type="submit" id="submitProduct" form="productForm" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Save</button>
-    </div>
-  </div>
+
+
+
+    <!-- Products Section -->
+    <div id="cardContent" style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;"></div>
+    <div id="paginationControls" class="flex justify-center mt-5"></div>
 </div>
+
+<!-- Modal for Adding Product -->
+<div id="crudModal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 w-full flex items-center justify-center bg-gray-800 bg-opacity-50 overflow-x-hidden overflow-y-auto transition-opacity duration-300 ease-out">
+    <div id="crudModalContent" class="relative bg-white rounded-lg shadow-lg w-5/6 sm:w-3/4 md:w-1/2 lg:w-1/3 mx-4 sm:mx-0 transform scale-95 opacity-0 transition-transform transition-opacity duration-300 ease-out">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between p-4 border-b rounded-t">
+            <h3 class="text-xl font-semibold text-gray-900">Add New Product</h3>
+            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center" id="closeModalBtn">
+                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+        </div>
+        <!-- Modal body -->
+        <div class="px-6 py-4 space-y-6">
+            <form id="productForm" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label for="name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" id="name" name="name" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter product name" required>
+                </div>
+                <div class="mb-4">
+                    <label for="kategori" class="block text-sm font-medium text-gray-700">Category</label>
+                    <input type="text" id="kategori" name="kategori" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter product category" required>
+                </div>
+                <div class="mb-4">
+                    <label for="harga" class="block text-sm font-medium text-gray-700">Price</label>
+                    <input type="number" id="harga" name="harga" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter product price" required>
+                </div>
+                <div class="mb-4">
+                    <label for="toko" class="block text-sm font-medium text-gray-700">Store Name</label>
+                    <input type="text" id="toko" name="toko" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter store name" required>
+                </div>
+                <div class="mb-4">
+                    <label for="alamat" class="block text-sm font-medium text-gray-700">Address</label>
+                    <textarea id="alamat" name="alamat" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter store address" required></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="kontak" class="block text-sm font-medium text-gray-700">Contact</label>
+                    <input type="text" id="kontak" name="kontak" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" placeholder="Enter contact information" required>
+                </div>
+                <div class="mb-4">
+                    <label for="gambar" class="block text-sm font-medium text-gray-700">Image</label>
+                    <input type="file" id="gambar" name="gambar" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-md p-2 hover:border-indigo-700" required>
+                </div>
+            </form>
+        </div>
+        <!-- Modal footer -->
+        <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 p-6 border-t border-gray-200 rounded-b justify-center md:justify-end">
+            <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg" id="cancelButton">Cancel</button>
+            <button type="button" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg" id="submitButton">Add Product</button>
+        </div>
+    </div>
+</div>
+
 
 <script>
 function addProduct() {
@@ -141,6 +147,84 @@ function addProduct() {
 const modal = document.getElementById('crudModal');
 const modalContent = document.getElementById('crudModalContent');
 
+
+let currentPage = 1;
+let numPage = 0;
+
+
+const productEntries = JSON.parse(`{{ data|safe }}`);
+const hasPrevious = `{{ has_previous|safe }}`;
+const hasNext = `{{ has_next|safe }}`;
+currentPage = `{{ current_page|safe }}`;
+const numPages = `{{ num_pages|safe }}`;
+const pageStatus = {
+    "hasPrevious": hasPrevious,
+    "hasNext": hasNext,
+    "currentPage": currentPage,
+    "numPages": numPages
+}
+
+function refreshCard(page = 1) {
+    const cardContent = document.getElementById("cardContent");
+    cardContent.innerHTML = "";  // Clear any existing content
+    console.log(productEntries)
+
+    if (productEntries.length === 0) {
+        cardContent.innerHTML = `
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;">
+                <img src="{% static 'image/no-card.png' %}" alt="no card" class="w-16 h-16 mb-2"/>
+                <p class="text-center font-bold">Belum Ada Produk</p>
+            </div>`;
+    } else {
+        productEntries.forEach((item) => {
+            const productCardHTML = `
+                    {% include 'card_product.html' %}
+                `;
+            cardContent.innerHTML += productCardHTML;
+        });
+    }
+    setupPaginationControls(pageStatus);
+}
+
+function setupPaginationControls(pageStatus) {
+    const paginationControls = document.getElementById("paginationControls");
+    paginationControls.innerHTML = "";  // Clear any existing controls
+
+    // Add "Previous" button
+    if (pageStatus.pagehasPrevious) {
+        const prevButton = document.createElement("button");
+        prevButton.textContent = "Previous";
+        prevButton.onclick = () => goToPage(pageStatus.currentPage - 1);
+        prevButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
+        paginationControls.appendChild(prevButton);
+    }
+
+    // Add page buttons
+    for (let i = 1; i <= numPages; i++) {
+        const pageButton = document.createElement("button");
+        pageButton.textContent = i;
+        pageButton.onclick = () => goToPage(i);
+        pageButton.className = `mx-1 px-2.5 py-1 border-none cursor-pointer ${i === pageStatus.currentPage ? 'bg-blue-500 text-white' : 'bg-gray-200'}`;
+        paginationControls.appendChild(pageButton);
+    }
+
+    // Add "Next" button
+    if (pageStatus.hasNext) {
+        const nextButton = document.createElement("button");
+        nextButton.textContent = "Next";
+        nextButton.onclick = () => goToPage(pageStatus.currentPage + 1);
+        nextButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
+        paginationControls.appendChild(nextButton);
+    }
+}
+
+function goToPage(page) {
+    const url = new URL(window.location);
+    url.searchParams.set("page", page);
+    window.location.href = url;
+}
+
+
 function showModal() {
     const modal = document.getElementById('crudModal');
     const modalContent = document.getElementById('crudModalContent');
@@ -167,13 +251,15 @@ function hideModal() {
 document.getElementById("cancelButton").addEventListener("click", hideModal);
 document.getElementById("closeModalBtn").addEventListener("click", hideModal);
 
+    document.getElementById('toggleFilter').addEventListener('click', () => {
+        const filterForm = document.getElementById('filterForm');
+        filterForm.classList.toggle('hidden');
+    });
 document.getElementById("productForm").addEventListener("submit", (e) => {
     e.preventDefault();
     addProduct();
 });
 
+refreshCard()
 </script>
-
-
-
-{% endblock content %}
+{% endblock %}

@@ -4,6 +4,8 @@ from django.utils.html import strip_tags
 
 
 from main.models import Product, Review, Forum, Wishlist, Transaction, Report, UserProfile
+from main.models import Product, Review, Forum, Wishlist, Report, UserProfile
+from django.utils.html import strip_tags
 from django import forms
 
 
@@ -23,6 +25,28 @@ class ForumForm(ModelForm):
     class Meta:
         model = Forum
         fields = ["message"]
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.product = kwargs.pop('product', None)
+        self.parent = kwargs.pop('parent', None)
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        comment = super().save(commit=False)
+        comment.user = self.user
+        comment.product = self.product
+        comment.commenter_name = self.user.username
+        if self.parent:
+            comment.parent = self.parent
+        if commit:
+            comment.save()
+        return comment
+
+    def clean_message(self):
+        message = self.cleaned_data.get('message')
+        sanitized_message = strip_tags(message)
+        return sanitized_message
 
 
 class WishlistForm(ModelForm):
@@ -75,3 +99,4 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['profile_picture', 'alamat', 'birthdate', 'phone_number', 'bio']
+        

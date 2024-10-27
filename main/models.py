@@ -10,7 +10,7 @@ class UserProfile(models.Model):
         ('ADMIN', 'Admin'),
     )
     role = models.CharField(max_length=10, choices=roles, default='CUSTOMER')
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True, default='ikon_botak/foto_ikon.jpg')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True, default='static/ikon_botak/foto_ikon.jpg')
     alamat = models.TextField(blank=True, null=True)  # Alamat opsional
     birthdate = models.DateField(null=True, blank=True)  # Tanggal lahir opsional
     phone_number = models.CharField(max_length=15, null=True, blank=True)  # Nomor telepon opsional
@@ -63,7 +63,9 @@ class Review(models.Model):
 class Forum(models.Model):
     product = models.ForeignKey(Product, related_name='discussions', on_delete=models.CASCADE)  # Relasi balik ke product
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    commenter_name = models.CharField(max_length=255, default='Anonymous')
     message = models.TextField()
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Wishlist(models.Model):
@@ -84,6 +86,16 @@ class Transaction(models.Model):
 
 class Report(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name="report", on_delete=models.CASCADE)  # Relasi balik ke user
+    user = models.ForeignKey(User, related_name="reports", on_delete=models.CASCADE)  # Relasi balik ke user
+    subject = models.CharField(max_length=255)  # Subject of the complaint
     message = models.TextField()
+    status_choices = (
+        ('Pending', 'Pending'),
+        ('Resolved', 'Resolved'),
+    )
+    status = models.CharField(max_length=10, choices=status_choices, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)  # Automatically adds timestamp
+
+    def __str__(self):
+        return f"Complaint from {self.user} about {self.product.name}"
 
