@@ -36,13 +36,11 @@ from urllib.parse import unquote
 
 def show_main(request):
     products = Product.objects.all()
-    # Filtering by category
     kategori_filter = request.GET.get('kategori')
 
     if kategori_filter:
         products = products.filter(kategori=kategori_filter)
 
-    # Filtering by price range
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
@@ -61,9 +59,20 @@ def show_main(request):
     for product in products:
         product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
 
+
+    ordered_prodct = products.order_by('-harga')
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(ordered_prodct, 20) 
+    page_obj = paginator.get_page(page_number)
+    product = serializers.serialize("json", page_obj)
+
     context = {
-       "data": products,
-       "category_list": ['Aksesoris','Boots','Camera','Fin','Fins','Glove','Gloves', 'Hood','Jacket','Mask','Others','Pants','Regulator','Snorkel','Socks','Wetsuit']
+       "data": product,
+       "category_list": ['Aksesoris','Boots','Camera','Fin','Fins','Glove','Gloves', 'Hood','Jacket','Mask','Others','Pants','Regulator','Snorkel','Socks','Wetsuit'],
+       'has_next': page_obj.has_next(),
+       'has_previous': page_obj.has_previous(),
+       'num_pages': paginator.num_pages,
+       'current_page': page_obj.number,
     }
     
     return render(request, "main.html", context)
@@ -332,6 +341,7 @@ def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
     return render(request, 'product_detail.html', {'data': product})
+
 
 @login_required
 def profile_view(request):

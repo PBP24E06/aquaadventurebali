@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
 {% include "navbar.html" %}
 
@@ -48,15 +49,8 @@
     </form>
 
     <!-- Products Section -->
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;">
-        {% for data in data %}
-            <a href="{% url 'main:product_detail' data.id %}">
-                {% include 'card_product.html' with data=data %}
-            </a>
-        {% empty %}
-            <p>No products found.</p>
-        {% endfor %}
-    </div>
+    <div id="cardContent" style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;"></div>
+    <div id="paginationControls" class="flex justify-center mt-5"></div>
 </div>
 
 
@@ -115,6 +109,7 @@
   </div>
 </div>
 
+
 <script>
 function addProduct() {
     fetch("{% url 'main:add_product_ajax' %}", {
@@ -142,6 +137,84 @@ function addProduct() {
 
 const modal = document.getElementById('crudModal');
 const modalContent = document.getElementById('crudModalContent');
+
+
+let currentPage = 1;
+let numPage = 0;
+
+
+const productEntries = JSON.parse(`{{ data|safe }}`);
+const hasPrevious = `{{ has_previous|safe }}`;
+const hasNext = `{{ has_next|safe }}`;
+currentPage = `{{ current_page|safe }}`;
+const numPages = `{{ num_pages|safe }}`;
+const pageStatus = {
+    "hasPrevious": hasPrevious,
+    "hasNext": hasNext,
+    "currentPage": currentPage,
+    "numPages": numPages
+}
+
+function refreshCard(page = 1) {
+    const cardContent = document.getElementById("cardContent");
+    cardContent.innerHTML = "";  // Clear any existing content
+    console.log(productEntries)
+
+    if (productEntries.length === 0) {
+        cardContent.innerHTML = `
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;">
+                <img src="{% static 'image/no-card.png' %}" alt="no card" class="w-16 h-16 mb-2"/>
+                <p class="text-center font-bold">Belum Ada Produk</p>
+            </div>`;
+    } else {
+        productEntries.forEach((item) => {
+            const productCardHTML = `
+                    {% include 'card_product.html' %}
+                `;
+            cardContent.innerHTML += productCardHTML;
+        });
+    }
+    setupPaginationControls(pageStatus);
+}
+
+function setupPaginationControls(pageStatus) {
+    const paginationControls = document.getElementById("paginationControls");
+    paginationControls.innerHTML = "";  // Clear any existing controls
+
+    // Add "Previous" button
+    if (pageStatus.pagehasPrevious) {
+        const prevButton = document.createElement("button");
+        prevButton.textContent = "Previous";
+        prevButton.onclick = () => goToPage(pageStatus.currentPage - 1);
+        prevButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
+        paginationControls.appendChild(prevButton);
+    }
+
+    // Add page buttons
+    for (let i = 1; i <= numPages; i++) {
+        const pageButton = document.createElement("button");
+        pageButton.textContent = i;
+        pageButton.onclick = () => goToPage(i);
+        pageButton.className = `mx-1 px-2.5 py-1 border-none cursor-pointer ${i === pageStatus.currentPage ? 'bg-blue-500 text-white' : 'bg-gray-200'}`;
+        paginationControls.appendChild(pageButton);
+    }
+
+    // Add "Next" button
+    if (pageStatus.hasNext) {
+        const nextButton = document.createElement("button");
+        nextButton.textContent = "Next";
+        nextButton.onclick = () => goToPage(pageStatus.currentPage + 1);
+        nextButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
+        paginationControls.appendChild(nextButton);
+    }
+}
+
+function goToPage(page) {
+    const url = new URL(window.location);
+    url.searchParams.set("page", page);
+    window.location.href = url;
+}
+
 
 function showModal() {
     const modal = document.getElementById('crudModal');
@@ -174,6 +247,7 @@ document.getElementById("productForm").addEventListener("submit", (e) => {
     addProduct();
 });
 
+refreshCard()
 </script>
 
 
