@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from .models import Transaction, Product, UserProfile, Review, Forum
+from .models import Transaction, Product, UserProfile, Review, Forum, Wishlist
 from django.urls import reverse
 from django.contrib.auth.models import User
 
@@ -216,7 +216,61 @@ class TestReview(TestCase):
         self.assertEqual(response.status_code, 201)
 
     
+class TestWishlist(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.userProfile = UserProfile.objects.create(user=self.user)
+        self.client.login(username='testuser', password='testpassword')
+        self.product = Product.objects.create(
+            name='Item1', kategori='Kategori1', harga=10000, 
+            toko='Toko Bagus', alamat='Jalan jalan', kontak='12345678', 
+            gambar='static/image/86a6be95-eaa0-458c-98f0-785d5abd3772-550x550.jpg'
+        )
 
+    def test_add_wishlist_successfull(self):
+        url = reverse('main:add_wishlist', args=[self.product.id])
+
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Wishlist.objects.count(), 1)
+
+    def test_show_wishlist_login(self):
+        url = reverse('main:show_wishlist')
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'wishlist.html')
+
+    def test_show_wishlist_without_login(self):
+        self.client.logout()
+        url = reverse('main:show_wishlist')
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 302)
+        
+        self.assertTemplateNotUsed(response, 'wishlist.html')
+
+    # def test_add_wishlist_without_login(self):
+    #     self.client.logout()
+    #     url = reverse('main:add_wishlist', args=[self.product.id])
+
+    #     login_url = reverse('main:login_user')  # Menggunakan reverse untuk mendapatkan URL login
+
+    #     response = self.client.post(url)
+
+    #     # Memeriksa apakah status kode adalah 302 (pengalihan)
+    #     self.assertEqual(response.status_code, 302)
+        
+    #     # Memeriksa apakah pengalihan menuju halaman login dengan parameter next
+    #     self.assertRedirects(response, f'{login_url}?next={url}')
+    #     self.assertEqual(Wishlist.objects.count(), 0)
+        
+    
+    
 
 class DiscussionTests(TestCase):
 
