@@ -449,8 +449,10 @@ def show_forum_json(request, product_id):
 def show_user_discussion(request, user_id):
     user = request.user
     user_requested = get_object_or_404(User, pk=user_id)
+    profile = UserProfile.objects.get(user_id=user_id)
 
     context = {
+       'profile': profile,
         'user_requested': user_requested,
         'user': user,
     }

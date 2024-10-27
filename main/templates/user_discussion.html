@@ -8,11 +8,12 @@
 {% block content %}
 {% include "navbar.html" %}
 
-<div class="p-5 pt-20">
-    <div class="container max-w-lg mx-auto p-5 border border-gray-300 rounded-lg bg-gray-100">
-        <h1 class="text-2xl font-bold">Profil Pengguna</h1>
+<div class="p-5 pt-20 flex flex-col md:flex-row justify-center md:justify-center gap-8 mx-auto">
+    <!-- Profile Section on the Left with Fixed Width on Larger Screens and No Shrink -->
+    <div class="w-full md:w-2/4 max-w-xs p-5 border border-gray-300 rounded-lg bg-gray-100 h-[550px] shrink-0 grow overflow-y-auto">
+        <h1 class="text-2xl font-bold text-center">Profil Pengguna</h1>
 
-        <div class="text-center">
+        <div class="text-center mt-4">
             {% if profile.profile_picture %}
                 <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user_requested.username }}'s Profile Picture" class="w-36 h-36 rounded-full border-4 border-blue-500 mx-auto">
             {% else %}
@@ -25,7 +26,7 @@
         <p><strong>Alamat:</strong> {{ profile.alamat|default:"Belum diisi" }}</p>
         <p><strong>Tanggal Lahir:</strong> {{ profile.birthdate|date:"Y-m-d"|default:"Belum diisi" }}</p>
         <p><strong>Nomor Telepon:</strong> {{ profile.phone_number|default:"Belum diisi" }}</p>
-        <p><strong>Deskripsi Diri:</strong> {{ profile.bio|default:"Belum diisi" }}</p>
+        <p class="break-words"><strong>Deskripsi Diri:</strong> {{ profile.bio|default:"Belum diisi" }}</p>
         <p><strong>Tanggal Bergabung:</strong> {{ profile.date_joined|date:"Y-m-d" }}</p>
 
         {% if user_requested.id == user.id %}
@@ -37,10 +38,13 @@
         {% endif %}
     </div>
 
-    <h2 class="text-2xl font-bold mt-10 mb-5">Diskusi Pengguna</h2>
-    <div id="discussionContent" class="flex flex-col gap-4 max-w-lg mx-auto p-5 border border-gray-300 rounded-lg bg-gray-100"></div>
-    <div id="paginationControls" class="flex justify-center mt-5"></div>
+    <!-- Discussion Section on the Right with Min Height, Max Width, and Proper Wrapping -->
+    <div id="discussionContent" class="min-w-[500px] max-w-[800px] md:w-3/4 flex flex-col gap-4 p-5 border border-gray-300 rounded-lg bg-gray-100 overflow-y-auto">
+        <!-- This will be populated with discussion data dynamically -->
+    </div>
 </div>
+
+<div id="paginationControls" class="flex justify-center mt-5"></div>
 
 <script>
     const loggedInUserId = "{{ user.id }}";
@@ -54,6 +58,7 @@
     }
 
     async function refreshForum(page = 1) {
+        console.log('{{ profile }}')
         currentPage = page;
         document.getElementById("discussionContent").innerHTML = "";
         let htmlString = "";
@@ -72,7 +77,7 @@
             forumEntries.forEach((item) => {
                 k++;
                 htmlString += `
-                    <div class="bg-gray-100 rounded-lg p-4 shadow-sm">
+                    <div class="bg-gray-100 rounded-lg p-4 shadow-sm break-words">
                         <div class="flex justify-between">
                             <div class="flex gap-4 items-start">
                                 <div>
@@ -84,13 +89,13 @@
                                 <a class="discussed-product text-green-500 font-bold cursor-pointer" product-id=${k}-${item.fields.product_id}>Lihat Produk</a>
                             </div>
                         </div>
-                        <img src="${item.fields.product_gambar}" alt="${item.fields.product_name}" class="w-16 h-auto rounded-lg mt-4">
+                        <img src="${item.fields.product_gambar}" alt="${item.fields.product_name}" class="w-16 h-auto max-w-full rounded-lg mt-4">
 
-                        <div class="mt-4">
+                        <div class="mt-4 break-words">
                             <p><strong>Comment: </strong>${item.fields.message}</p>
 
                             ${item.fields.parent ? `
-                                <div class="bg-gray-200 border-l-4 border-green-500 p-4 mt-4">
+                                <div class="bg-gray-200 border-l-4 border-green-500 p-4 mt-4 break-words">
                                     <strong>Replying to:</strong> ${item.fields.parent_commenter}<br>
                                     <span class="text-sm">${item.fields.parent_message}</span>
                                 </div>
