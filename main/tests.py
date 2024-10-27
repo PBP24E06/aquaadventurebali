@@ -59,16 +59,45 @@ class TestProduct(TestCase):
         self.assertEquals(response.status_code, 302)
         self.assertTemplateNotUsed(response, 'request_admin.html')
 
-    def test_add_product_ajax_without_login(self):
-        self.client.logout()
-        response = self.client.post('/add-product-ajax/')
+    def test_add_product_ajax_successfull(self):
+        self.userProfile.promote_admin()
+        url = reverse('main:add_product_ajax')
+        
+        
+        data = {
+            'name': 'produk1',
+            'kategori': 'kategori1',
+            'harga': 100000,
+            'toko': 'Toko toko',
+            'alamat': 'Jalan jalan',
+            'kontak': '12345678',
+            'gambar': 'static/image/86a6be95-eaa0-458c-98f0-785d5abd3772-550x550.jpg'
+        }
+        
+        response = self.client.post(url, data)
+        
+        
+        self.assertEqual(response.status_code, 201)
 
-        self.assertEquals(response.status_code, 302)
+    def test_add_product_ajax_not_admin(self):
+        url = reverse('main:add_product_ajax')
+        
+        
+        data = {
+            'name': 'produk1',
+            'kategori': 'kategori1',
+            'harga': 100000,
+            'toko': 'Toko toko',
+            'alamat': 'Jalan jalan',
+            'kontak': '12345678',
+            'gambar': 'static/image/86a6be95-eaa0-458c-98f0-785d5abd3772-550x550.jpg'
+        }
+        
+        response = self.client.post(url, data)
+        
+        
+        self.assertEqual(response.status_code, 403)
 
-    def test_add_product_ajax_login_not_admin(self):
-        response = self.client.post('/add-product-ajax/')
-
-        self.assertEquals(response.status_code, 403)
 
     def test_edit_product(self):
         self.userProfile.promote_admin()
@@ -146,11 +175,10 @@ class TestCheckout(TestCase):
         response = self.client.post(url, data)
         
         
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 400)
         
 
     
-
 
 class TestReview(TestCase):
     def setUp(self):
@@ -172,9 +200,22 @@ class TestReview(TestCase):
 
         self.assertTrue(isinstance(review, Review))
 
-    def test_add_review_by_ajax(self):
-        pass
+    def test_add_review_by_ajax_successfull(self):
+        url = reverse('main:create_review_by_ajax', args=[self.product.id])
+        
+        
+        data = {
+            'user': self.user,
+            'rating': float(4.5),
+            'review_text': 'wow keren amat produknya'
+        }
+        
+        response = self.client.post(url, data)
+        
+        
+        self.assertEqual(response.status_code, 201)
 
+    
 
 
 class DiscussionTests(TestCase):

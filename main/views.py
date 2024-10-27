@@ -40,6 +40,9 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from urllib.parse import unquote
 
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+
 
 
 def show_main(request):
@@ -317,6 +320,10 @@ def checkout_by_ajax(request, id):
     product = Product.objects.get(pk=id)
     user = request.user
     
+    try:
+        validate_email(email)  # Ini akan memicu ValidationError jika email tidak valid
+    except ValidationError:
+        return JsonResponse({'error': 'Email tidak valid'}, status=400)
 
     new_transaction = Transaction(
         name=name, email=email,
