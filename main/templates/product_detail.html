@@ -32,7 +32,7 @@
                 
                 <button data-modal-target="crudModalCheckout" data-modal-toggle="crudModalCheckout" style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;" onclick="showModalCheckout('{{ data.pk }}');">Checkout</button>
 
-                {% if data.has_complained %}
+                {% if product_has_complain %}
                     <span style="color: red; font-weight: bold; font-size: 1.5em; padding-left: 8px;">C</span>
                 {% endif %}
                 

@@ -211,6 +211,10 @@ def show_json_transaction(request):
     data = Transaction.objects.filter(user=request.user)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+def show_json_complain(request):
+    data = Report.objects.filter(user=request.user)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
 
 
 @login_required(login_url='/login')
@@ -356,7 +360,11 @@ def get_product_data_for_checkout(request, id):
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
-    return render(request, 'product_detail.html', {'data': product})
+    product_has_complain = False
+    cek_complain = Report.objects.filter(product=product)
+    if(cek_complain.count() > 0):
+       product_has_complain = True
+    return render(request, 'product_detail.html', {'data': product, 'product_has_complain': product_has_complain})
 
 @login_required(login_url='/login')
 def profile_view(request):
