@@ -10,32 +10,6 @@
 
 <div class="p-5 pt-20">
     <div class="container max-w-lg mx-auto p-5 border border-gray-300 rounded-lg bg-gray-100">
-        <h1 class="text-2xl font-bold">Profil Pengguna</h1>
-
-        <div class="text-center">
-            {% if profile.profile_picture %}
-                <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user_requested.username }}'s Profile Picture" class="w-36 h-36 rounded-full border-4 border-blue-500 mx-auto">
-            {% else %}
-                <i class="fas fa-user-circle text-blue-500 text-9xl"></i>
-            {% endif %}
-        </div>
-
-        <h2 class="text-center mt-4 text-xl font-semibold">{{ profile.user_requested.username }}</h2>
-        <p><strong>Role:</strong> {{ profile.role }}</p>
-        <p><strong>Alamat:</strong> {{ profile.alamat|default:"Belum diisi" }}</p>
-        <p><strong>Tanggal Lahir:</strong> {{ profile.birthdate|date:"Y-m-d"|default:"Belum diisi" }}</p>
-        <p><strong>Nomor Telepon:</strong> {{ profile.phone_number|default:"Belum diisi" }}</p>
-        <p><strong>Deskripsi Diri:</strong> {{ profile.bio|default:"Belum diisi" }}</p>
-        <p><strong>Tanggal Bergabung:</strong> {{ profile.date_joined|date:"Y-m-d" }}</p>
-
-        {% if user_requested.id == user.id %}
-        <div class="mt-5 text-center">
-            <a href="{% url 'main:edit_profile' %}" class="bg-blue-500 text-white px-4 py-2 rounded font-semibold no-underline">
-                Edit Profil
-            </a>
-        </div>
-        {% endif %}
-    </div>
 
     <h2 class="text-2xl font-bold mt-10 mb-5">Diskusi Pengguna</h2>
     <div id="discussionContent" class="flex flex-col gap-4 max-w-lg mx-auto p-5 border border-gray-300 rounded-lg bg-gray-100"></div>
