@@ -115,7 +115,41 @@ class TestCheckout(TestCase):
         response = self.client.get('/transaction-history')
 
         self.assertEquals(response.status_code, 302)
-        self.assertTemplateNotUsed(response, 'rtransaction_history.html')
+        self.assertTemplateNotUsed(response, 'transaction_history.html')
+
+    def test_checkout_successfull(self):
+        url = reverse('main:checkout_by_ajax', args=[self.product.id])
+        
+        
+        data = {
+            'name': 'tes',
+            'email': 'tes@gmail.com',
+            'phone_number': '123456789'
+        }
+        
+        response = self.client.post(url, data)
+        
+        
+        self.assertEqual(response.status_code, 201)
+
+    def test_checkout_wrong_email(self):
+
+
+        url = reverse('main:checkout_by_ajax', args=[self.product.id])
+        
+        data = {
+            'name': 'tes',
+            'email': 'tesgmail.com',
+            'phone_number': '123456789'
+        }
+        
+        response = self.client.post(url, data)
+        
+        
+        self.assertEqual(response.status_code, 403)
+        
+
+    
 
 
 class TestReview(TestCase):
@@ -137,6 +171,9 @@ class TestReview(TestCase):
         )
 
         self.assertTrue(isinstance(review, Review))
+
+    def test_add_review_by_ajax(self):
+        pass
 
 
 
