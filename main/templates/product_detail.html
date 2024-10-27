@@ -169,6 +169,7 @@
         const modalCheckout = document.getElementById('crudModalCheckout');
         const modalContentCheckout = document.getElementById('crudModalContentCheckout');
         const form = document.getElementById('checkoutForm');
+        console.log(productId)
 
         fetch(`/get_product_data_for_checkout/${productId}/`)
             .then(response => response.json())
