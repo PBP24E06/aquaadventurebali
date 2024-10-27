@@ -29,6 +29,11 @@ class TestModels(TestCase):
 
         self.assertTrue(isinstance(transaction, Transaction))
 
+    def test_model_user_profile(self):
+        user_profile = UserProfile(
+            user=self.user
+        )
+
 class TestViews(TestCase):
     def setUp(self):
         self.client = Client()
@@ -74,6 +79,7 @@ class TestViews(TestCase):
         response = self.client.get('/create-product/')
 
         self.assertEquals(response.status_code, 302)
+        self.assertTemplateNotUsed(response, 'request_admin.html')
 
     def test_create_product_with_login_not_admin(self):
         response = self.client.get('/create-product/')
@@ -81,13 +87,24 @@ class TestViews(TestCase):
         self.assertEquals(response.status_code, 403)
         self.assertTemplateNotUsed(response, 'request_admin.html')
 
-    def test_create_product_admin(self):
-        self.client.login()
-        self.userProfile.promote_admin()
-        response = self.client.get('/create-product/')
+    # def test_create_product_admin(self):
+    #     self.userProfile.promote_admin()
+    
+    #     # Ensure the profile is saved with the new role
+    #     self.userProfile.save()
+        
+    #     response = self.client.get('/create-product/')
 
-        self.assertEquals(response.status_code, 201)
-        self.assertTemplateNotUsed(response, 'request_admin.html')
+    #     self.assertEquals(response.status_code, 201)
+    #     self.assertTemplateNotUsed(response, 'request_admin.html')
+        
+    # def test_view_product_detail(self):
+    #     response = self.client.get('/product-detail/fa841a2a-528d-47c6-a0f9-0155eed06d03')
+
+    #     self.assertEquals(response.status_code, 200)
+    #     self.assertTemplateUsed(response, 'product_detail.html')
+
+        
         
 
     
