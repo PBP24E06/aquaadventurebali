@@ -50,7 +50,9 @@
     <!-- Products Section -->
     <div style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px; margin-top: 10px;">
         {% for data in data %}
-            {% include 'card_product.html' with data=data %}
+            <a href="{% url 'main:product_detail' data.id %}">
+                {% include 'card_product.html' with data=data %}
+            </a>
         {% empty %}
             <p>No products found.</p>
         {% endfor %}

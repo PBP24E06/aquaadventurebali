@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>aquaadvanturebali</title>
+{% endblock meta %}
+
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="p-5 pt-20">
+    <div class="container max-w-lg mx-auto p-5 border border-gray-300 rounded-lg bg-gray-100">
+        <h1 class="text-2xl font-bold">Profil Pengguna</h1>
+
+        <div class="text-center">
+            {% if profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user_requested.username }}'s Profile Picture" class="w-36 h-36 rounded-full border-4 border-blue-500 mx-auto">
+            {% else %}
+                <i class="fas fa-user-circle text-blue-500 text-9xl"></i>
+            {% endif %}
+        </div>
+
+        <h2 class="text-center mt-4 text-xl font-semibold">{{ profile.user_requested.username }}</h2>
+        <p><strong>Role:</strong> {{ profile.role }}</p>
+        <p><strong>Alamat:</strong> {{ profile.alamat|default:"Belum diisi" }}</p>
+        <p><strong>Tanggal Lahir:</strong> {{ profile.birthdate|date:"Y-m-d"|default:"Belum diisi" }}</p>
+        <p><strong>Nomor Telepon:</strong> {{ profile.phone_number|default:"Belum diisi" }}</p>
+        <p><strong>Deskripsi Diri:</strong> {{ profile.bio|default:"Belum diisi" }}</p>
+        <p><strong>Tanggal Bergabung:</strong> {{ profile.date_joined|date:"Y-m-d" }}</p>
+
+        {% if user_requested.id == user.id %}
+        <div class="mt-5 text-center">
+            <a href="{% url 'main:edit_profile' %}" class="bg-blue-500 text-white px-4 py-2 rounded font-semibold no-underline">
+                Edit Profil
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <h2 class="text-2xl font-bold mt-10 mb-5">Diskusi Pengguna</h2>
+    <div id="discussionContent" class="flex flex-col gap-4 max-w-lg mx-auto p-5 border border-gray-300 rounded-lg bg-gray-100"></div>
+    <div id="paginationControls" class="flex justify-center mt-5"></div>
+</div>
+
+<script>
+    const loggedInUserId = "{{ user.id }}";
+
+    let currentPage = 1;
+    let numPage = 0;
+
+    async function getDiscussionEntries(page = 1) {
+        return fetch(`{% url 'main:show_user_discussion_json' user_requested.id %}?page=${page}`)
+            .then(res => res.json());
+    }
+
+    async function refreshForum(page = 1) {
+        currentPage = page;
+        document.getElementById("discussionContent").innerHTML = "";
+        let htmlString = "";
+        const forumData = await getDiscussionEntries(page);
+        numPage = forumData.num_pages;
+        const forumEntries = forumData.discussions;
+
+        if (forumEntries.length === 0) {
+            htmlString = `
+                <div class="bg-gray-100 rounded-lg p-4 shadow-sm text-center">
+                    <img src="{% static 'image/no-discussion.png' %}" alt="no discussion" class="w-16 h-16 mx-auto mb-2"/>
+                    <p class="font-bold">Belum Ada Diskusi Produk</p>
+                </div>`;
+        } else {
+            let k = 0;
+            forumEntries.forEach((item) => {
+                k++;
+                htmlString += `
+                    <div class="bg-gray-100 rounded-lg p-4 shadow-sm">
+                        <div class="flex justify-between">
+                            <div class="flex gap-4 items-start">
+                                <div>
+                                    <strong>${item.fields.product_name}</strong><br>
+                                    <span class="text-sm text-gray-500">${item.fields.created_at}</span>
+                                </div>
+                            </div>
+                            <div class="ml-auto">
+                                <a class="discussed-product text-green-500 font-bold cursor-pointer" product-id=${k}-${item.fields.product_id}>Lihat Produk</a>
+                            </div>
+                        </div>
+                        <img src="${item.fields.product_gambar}" alt="${item.fields.product_name}" class="w-16 h-auto rounded-lg mt-4">
+
+                        <div class="mt-4">
+                            <p><strong>Comment: </strong>${item.fields.message}</p>
+
+                            ${item.fields.parent ? `
+                                <div class="bg-gray-200 border-l-4 border-green-500 p-4 mt-4">
+                                    <strong>Replying to:</strong> ${item.fields.parent_commenter}<br>
+                                    <span class="text-sm">${item.fields.parent_message}</span>
+                                </div>
+                            ` : ''}
+
+                            ${String(item.fields.user_requested) === String(loggedInUserId) ? `
+                            <div class="mt-4 flex justify-end"> <!-- Align Delete button to the right -->
+                                <button class="delete-btn bg-red-500 text-white px-4 py-1.5 rounded cursor-pointer" data-id="${item.pk}">
+                                    Delete
+                                </button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+        }
+        document.getElementById("discussionContent").innerHTML = htmlString;
+        setupPaginationControls(forumData);
+
+        document.querySelectorAll('.discussed-product').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const combinedId = this.getAttribute('product-id');
+                const productId = combinedId.split('-').slice(1).join('-');
+                window.location.href = `/product-detail/${productId}`;
+            });
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const discussionId = this.getAttribute('data-id');
+                const csrftoken = "{{ csrf_token }}";
+
+                fetch(`/delete_discussion/${discussionId}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                    },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Gagal menghapus komentar.');
+                    }
+                });
+            });
+        });
+    }
+
+    function setupPaginationControls(forumData) {
+        const paginationControls = document.getElementById("paginationControls");
+        paginationControls.innerHTML = "";
+
+        if (forumData.has_previous) {
+            const prevButton = document.createElement("button");
+            prevButton.textContent = "Previous";
+            prevButton.onclick = () => refreshForum(currentPage - 1);
+            prevButton.className = "mx-1 px-2 py-1 border-none bg-gray-200 cursor-pointer";
+            paginationControls.appendChild(prevButton);
+        }
+
+        for (let i = 1; i <= numPage; i++) {
+            const page = document.createElement("button");
+            page.textContent = i;
+            page.onclick = () => refreshForum(i);
+            page.className = "mx-1 px-2 py-1 border-none bg-gray-200 cursor-pointer";
+            paginationControls.appendChild(page);
+        }
+
+        if (forumData.has_next) {
+            const nextButton = document.createElement("button");
+            nextButton.textContent = "Next";
+            nextButton.onclick = () => refreshForum(currentPage + 1);
+            nextButton.className = "mx-1 px-2 py-1 border-none bg-gray-200 cursor-pointer";
+            paginationControls.appendChild(nextButton);
+        }
+    }
+
+    refreshForum();
+</script>
+
+{% endblock content %}

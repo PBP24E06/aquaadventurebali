@@ -12,6 +12,9 @@
       <div class="hidden md:flex items-center ml-auto space-x-4">
           {% if user.is_authenticated %}
             <div class="text-center flex items-center space-x-2">
+              <div id="showUserDiscussion" class="hidden md:flex items-center space-x-8">
+                <a href="{% url 'main:show_user_discussion' user.id %}"><h1 class="text-center text-gray-300 hover:text-white">My Discussion</h4></a>
+              </div>
               <a class="text-center text-gray-300 hover:text-white" href="{% url 'main:view_transaction_history' %}">Transaction History</a>
               <span class="block text-center text-gray-300 px-3 py-2">Welcome, {{ user.username }}</span>
 
