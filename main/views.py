@@ -15,7 +15,7 @@ from django.utils.html import strip_tags
 from main.models import Product, UserProfile, Review, Wishlist, Transaction
 from main.forms import ReviewForm, UserProfileForm
 
-from main.models import Product, UserProfile
+from main.models import Product, UserProfile, Report
 from django.core.paginator import Paginator
 from django.db.models import Q
 from main.models import Product, UserProfile, Forum
@@ -23,7 +23,7 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
 from main.forms import TransactionForm
-from main.forms import ProductForm
+from main.forms import ProductForm, ReportForm
 from django.utils.html import strip_tags
 from main.forms import ProductForm,TransactionForm
 from .forms import ReportForm
@@ -215,6 +215,10 @@ def show_json_transaction(request):
     data = Transaction.objects.filter(user=request.user)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+def show_json_complain(request):
+    data = Report.objects.filter(user=request.user)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
 
 
 @login_required(login_url='/login')
@@ -226,6 +230,17 @@ def all_review(request, id):
       "reviews": reviews
     }
     return render(request, "all_review.html", context)
+
+@login_required(login_url='/login')
+def all_report(request, id):
+    product = get_object_or_404(Product, pk=id)
+    reports = Report.objects.filter(product=product)
+    context = {
+        "product": product,
+        "reports": reports
+    }
+    
+    return render(request, "all_report.html", context)
 
 @login_required(login_url='/login')
 def checkout(request, id):
@@ -256,9 +271,11 @@ def view_transaction_history(request):
   transaction_list = Transaction.objects.filter(user=request.user)
 
   reviewed_products = set(Review.objects.filter(user=request.user).values_list('product_id', flat=True))
+  complained_products = set(Report.objects.filter(user=request.user).values_list('product_id', flat=True))
 
   for transaction in transaction_list:
     transaction.has_reviewed = transaction.product.id in reviewed_products
+    transaction.has_complained = transaction.product.id in complained_products
     transaction.product.formatted_harga = f"{format(transaction.product.harga, ',').replace(',', '.')}"
 
   context = {
@@ -358,7 +375,11 @@ def get_product_data_for_checkout(request, id):
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
-    return render(request, 'product_detail.html', {'data': product})
+    product_has_complain = False
+    cek_complain = Report.objects.filter(product=product)
+    if(cek_complain.count() > 0):
+       product_has_complain = True
+    return render(request, 'product_detail.html', {'data': product, 'product_has_complain': product_has_complain})
 
 @login_required(login_url='/login')
 def profile_view(request):
@@ -403,26 +424,21 @@ def create_review_by_ajax(request, id):
     return HttpResponse(b"CREATED", status=201)
 
 @login_required
-def create_report(request, product_id):
+@csrf_exempt
+def create_report_by_ajax(request, product_id):
     product = Product.objects.get(pk=product_id)
-    
+
     if request.method == 'POST':
         form = ReportForm(request.POST)
         if form.is_valid():
             report = form.save(commit=False)
-            report.user = request.user  # Link the report to the logged-in user
-            report.product = product  # Link the report to the product
+            report.user = request.user
+            report.product = product
             report.save()
-            messages.success(request, 'Your complaint has been submitted successfully.')
-            return redirect('main:show_main')
-    else:
-        form = ReportForm()
-
-    context = {
-        'form': form,
-        'product': product
-    }
-    return render(request, 'create_report.html', context)
+            return HttpResponse("Complaint submitted successfully!", status=201)
+        else:
+            return HttpResponse("Failed to submit complaint. Please check the form for errors.", status=400)
+    return HttpResponse("Invalid request method.", status=405)
    
    
 
