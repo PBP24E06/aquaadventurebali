@@ -1,0 +1,286 @@
+{% load static %}
+
+<div id="kontainerDiscussionForm" class="flex flex-col p-2.5">
+    <h1 class="text-2xl font-bold mb-2.5">Diskusi</h1>
+    <div class="flex justify-between items-center mb-5">
+        <p>Ada pertanyaan? Diskusikan dengan penjual atau pengguna lain</p>
+        <button id="discussionTalkBtn" class="bg-green-500 text-white border-none px-4 py-2 rounded font-bold">
+            Tulis Pertanyaan
+        </button>
+    </div>
+    <div id="discussionContent" class="mb-5"></div>
+    <div id="paginationControls" class="flex justify-center mt-5"></div>
+    <div id="addDiscussionBox" class="border-t border-gray-200 pt-2.5 hidden">
+        <form id="addDiscussionForm" method="POST" class="flex flex-col">
+            {% csrf_token %}
+            <textarea id="message" name="message" placeholder="Apa yang ingin Anda tanyakan mengenai produk ini?" required class="p-2 border border-gray-200 rounded mb-2.5 h-20"></textarea>
+            <button type="submit" id="submitDiscussionEntry" class="bg-green-500 text-white border-none px-4 py-2 rounded">
+                Save
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+    const productId = "{{ data.id }}";
+
+    let currentPage = 1;
+    let numPage = 0;
+
+    async function getForumEntries(page = 1) {
+        return fetch(`{% url 'main:show_forum_json' data.id %}?page=${page}`)
+            .then(res => res.json());
+    }
+
+    async function getUserProfileEntries(userId){
+        return fetch(`/user_profile_json/${userId}/`)
+        .then(res => res.json());
+    }
+
+    async function refreshForum(page = 1) {
+        currentPage = page;
+        document.getElementById("discussionContent").innerHTML = "";
+        let htmlString = "";
+        let replyHtml= "";
+        const forumData = await getForumEntries(page);
+        numPage = forumData.num_pages;
+        const forumEntries = JSON.parse(forumData.discussions);
+
+        if (forumEntries.length === 0) {
+            htmlString = `
+                <div class="flex flex-col items-center">
+                    <img src="{% static 'image/no-discussion.png' %}" alt="no discussion" class="w-16 h-16 mb-2"/>
+                    <p class="text-center font-bold">Belum Ada Diskusi Produk</p>
+                </div>`;
+        } else {
+            for (const item of forumEntries) {
+                if (item.fields.parent === null) {
+                    const userProfileEntries = await getUserProfileEntries(item.fields.user);
+                    if (forumData.user_requester !== "AnonymousUser") {
+                        userRequester = JSON.parse(forumData.user_requester)[0];
+                    } else {
+                        userRequester = forumData.user_requester
+                    }
+                    let replyHtml = await getRepliesForParent(item.pk, forumEntries, userRequester);
+                    const isUserOwner = userRequester.pk === item.fields.user;
+                    htmlString += `
+                        <div class="border border-gray-300 rounded-lg p-4 mb-5">
+                            <div class="flex items-center mb-2.5">
+                                <a class="user-picture cursor-pointer" pic-id="${item.fields.user}"><img src="${userProfileEntries.profile_picture ? userProfileEntries.profile_picture : '{% static "image/profile-picture.png" %}'}" class="w-12 h-12 rounded-full mr-2.5"></a>
+                                <div>
+                                    <p><a class="font-bold cursor-pointer user-username" user-id="${item.fields.user}">${item.fields.commenter_name}</a> - ${item.fields.created_at}</p>
+                                    <p>${item.fields.message}</p>
+                                </div>
+                                ${isUserOwner ? `
+                                    <button class="three-dots-btn bg-none border-none text-lg cursor-pointer ml-auto">...</button>
+                                    <div class="dropdown-content hidden absolute bg-white min-w-[120px] shadow-lg z-10">
+                                        <button class="delete-discussion-btn" data-id="${item.pk}">Delete</button>
+                                    </div>
+                                ` : ""}
+                            </div>
+                            <div class="ml-12">
+                                ${replyHtml}
+                            </div>
+                            {% if user.is_authenticated %}
+                                <form class="replyForm flex mt-2.5 ml-12" data-parent-id="${item.pk}">
+                                    <textarea name="message" placeholder="Isi komentar disini" required class="flex-1 p-2 border border-gray-200 rounded mb-2.5 mr-2.5"></textarea>
+                                    <button type="submit" class="bg-green-500 text-white border-none px-4 py-2 rounded">Balas</button>
+                                </form>
+                            {% endif %}
+                        </div>`;
+                }
+            };
+        }
+        document.getElementById("discussionContent").innerHTML = htmlString;
+        setupPaginationControls(forumData); 
+
+        document.querySelectorAll('.replyForm').forEach(form => {
+            form.onsubmit = addReply;
+        });
+
+        document.querySelectorAll('.three-dots-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const dropdown = this.nextElementSibling;
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+
+        document.querySelectorAll('.delete-discussion-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const discussionId = this.getAttribute('data-id');
+                deleteDiscussion(discussionId);
+            });
+        });
+
+        document.querySelectorAll('.user-picture').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const userId = Number(this.getAttribute('pic-id'));
+                window.location.href = `/user_discussion/${userId}/`;
+            });
+        });
+
+        document.querySelectorAll('.user-username').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const userId = Number(this.getAttribute('user-id'));
+                window.location.href = `/user_discussion/${userId}/`;
+            })
+        })
+    }
+
+    function setupPaginationControls(forumData) {
+        const paginationControls = document.getElementById("paginationControls");
+        paginationControls.innerHTML = "";  
+
+        if (forumData.has_previous) {
+            const prevButton = document.createElement("button");
+            prevButton.textContent = "Previous";
+            prevButton.onclick = () => refreshForum(currentPage - 1);
+            prevButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
+            paginationControls.appendChild(prevButton);
+        }
+
+        for (let i = 1; i <= numPage; i++) {
+            const page = document.createElement("button");
+            page.textContent = i;
+            page.onclick = () => refreshForum(i);
+            page.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
+            paginationControls.appendChild(page);
+        }
+
+        if (forumData.has_next) {
+            const nextButton = document.createElement("button");
+            nextButton.textContent = "Next";
+            nextButton.onclick = () => refreshForum(currentPage + 1);
+            nextButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
+            paginationControls.appendChild(nextButton);
+        }
+    }
+
+    async function getRepliesForParent(parentId, entries, userRequester) {
+        let replyHtml = '';
+        for (const entry of entries) {
+            if (entry.fields.parent === parentId) {
+                const userProfileEntries = await getUserProfileEntries(entry.fields.user);
+                const isUserOwner = userRequester.pk === entry.fields.user;
+                replyHtml += `
+                    <div class="flex items-start mt-2.5">
+                        <a class="user-picture cursor-pointer" pic-id="${entry.fields.user}"><img src="${userProfileEntries.profile_picture ? userProfileEntries.profile_picture : '{% static "image/profile-picture.png" %}'}" class="w-12 h-12 rounded-full mr-2.5"></a>
+                        <div class="flex-1 bg-gray-100 rounded-lg p-2.5">
+                            <p><a class="font-bold cursor-pointer user-username" user-id="${entry.fields.user}">${entry.fields.commenter_name}</a> - ${entry.fields.created_at}</p>
+                            <p>${entry.fields.message}</p>
+                        </div>
+                        ${isUserOwner ? `
+                            <button class="three-dots-btn bg-none border-none text-lg cursor-pointer">...</button>
+                            <div class="dropdown-content hidden absolute bg-white min-w-[120px] shadow-lg z-10">
+                                <button class="delete-discussion-btn" data-id="${entry.pk}">Delete</button>
+                            </div>
+                        ` : ""}
+                    </div>`;
+            }
+        };
+        return replyHtml;
+    }
+
+    async function deleteDiscussion(discussionId) {
+        fetch(`/delete_discussion/${discussionId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                refreshForum();
+            } else {
+                console.error('Failed to delete discussion.');
+            }
+        });
+    }
+
+    async function addDiscussion(event) {
+        event.preventDefault();
+
+        fetch(`/add_discussion_or_reply/${productId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken, 
+            },
+            body: new FormData(document.querySelector('#addDiscussionForm'))
+        })
+        .then(response => {
+            if (response.ok) {
+                refreshForum();
+                document.getElementById("addDiscussionForm").reset();
+            } else {
+                console.error('Failed to add discussion:', response.statusText);
+            }
+        });
+    }
+
+    document.getElementById("addDiscussionForm").onsubmit = addDiscussion;
+
+    async function addReply(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const parentId = form.getAttribute('data-parent-id');
+        
+        formData.append('parent_id', parentId);
+
+        fetch(`/add_discussion_or_reply/${productId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken
+            },
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                refreshForum();
+                form.reset();
+            } else {
+                console.error('Failed to add reply:', response.statusText);
+            }
+        });
+    }
+
+    const isAuthenticated = JSON.parse("{{ user.is_authenticated|yesno:'true,false' }}");
+
+    async function showDiscussionBox() {
+        if (isAuthenticated) {
+            document.getElementById('addDiscussionBox').style.display = 'block';
+        } else {
+            document.getElementById('addDiscussionBox').style.display = 'none'; 
+        }
+    }
+
+    window.onload = showDiscussionBox;
+
+    document.getElementById('discussionTalkBtn').addEventListener('click', function() {
+        if (!isAuthenticated) {
+            window.location.href = "{% url 'main:login_user' %}?next={{ request.path }}";
+        } else {
+            const targetElement = document.getElementById('addDiscussionBox');
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+
+    refreshForum();
+</script>
