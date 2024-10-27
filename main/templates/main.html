@@ -193,31 +193,31 @@ function refreshCard(page = 1) {
 
 function setupPaginationControls(pageStatus) {
     const paginationControls = document.getElementById("paginationControls");
-    paginationControls.innerHTML = "";  // Clear any existing controls
+    paginationControls.innerHTML = "";  // Hapus kontrol yang ada
 
-    // Add "Previous" button
-    if (pageStatus.pagehasPrevious) {
+    // Tambahkan tombol "Previous"
+    if (pageStatus.hasPrevious) {
         const prevButton = document.createElement("button");
         prevButton.textContent = "Previous";
-        prevButton.onclick = () => goToPage(pageStatus.currentPage - 1);
+        prevButton.onclick = () => goToPage(parseInt(pageStatus.currentPage) - 1);
         prevButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
         paginationControls.appendChild(prevButton);
     }
 
-    // Add page buttons
-    for (let i = 1; i <= numPages; i++) {
+    // Tambahkan tombol halaman
+    for (let i = 1; i <= pageStatus.numPages; i++) {
         const pageButton = document.createElement("button");
         pageButton.textContent = i;
         pageButton.onclick = () => goToPage(i);
-        pageButton.className = `mx-1 px-2.5 py-1 border-none cursor-pointer ${i === pageStatus.currentPage ? 'bg-blue-500 text-white' : 'bg-gray-200'}`;
+        pageButton.className = `mx-1 px-2.5 py-1 border-none cursor-pointer ${i === parseInt(pageStatus.currentPage) ? 'bg-blue-500 text-white' : 'bg-gray-200'}`;
         paginationControls.appendChild(pageButton);
     }
 
-    // Add "Next" button
-    if (pageStatus.hasNext) {
+    // Tambahkan tombol "Next" jika ada halaman berikutnya
+    if (pageStatus.hasNext && pageStatus.currentPage < pageStatus.numPages) {
         const nextButton = document.createElement("button");
         nextButton.textContent = "Next";
-        nextButton.onclick = () => goToPage(pageStatus.currentPage + 1);
+        nextButton.onclick = () => goToPage(parseInt(pageStatus.currentPage) + 1);
         nextButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
         paginationControls.appendChild(nextButton);
     }
