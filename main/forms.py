@@ -90,7 +90,7 @@ class TransactionForm(ModelForm):
 class ReportForm(ModelForm):
     class Meta:
         model = Report
-        fields = ['subject', "message"]
+        fields = ["message"]
 
 
 class UserProfileForm(forms.ModelForm):
