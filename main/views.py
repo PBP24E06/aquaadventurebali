@@ -504,7 +504,7 @@ def show_user_discussion_json(request, user_id):
         parent_commenter = discussion.parent.commenter_name if discussion.parent else None
 
         raw_url = product.gambar.url if product.gambar else None
-        product_gambar_url = f"{unquote(raw_url).lstrip('/')}" if raw_url else None
+        product_gambar_url = product.gambar.url
 
         discussion_data.append({
             "pk": discussion.pk,
