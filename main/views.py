@@ -235,6 +235,7 @@ def all_report(request, id):
         "product": product,
         "reports": reports
     }
+    
     return render(request, "all_report.html", context)
 
 @login_required(login_url='/login')
