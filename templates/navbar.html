@@ -5,6 +5,7 @@
         <a href="{% url 'main:show_main' %}"><h1 class="text-2xl font-bold text-center text-white" style="font-family: monospace;">Aqua Adventure Bali</h1></a>
       </div>
 
+<<<<<<< HEAD
       <div class="hidden md:flex items-center space-x-8">
           <a href="{% url 'main:show_main' %}"><h1 class="text-center text-gray-300 hover:text-white">Home</h1></a>
       </div>
@@ -14,6 +15,16 @@
             <div class="text-center flex items-center space-x-2">
               <a class="text-center text-gray-300 hover:text-white" href="{% url 'main:view_transaction_history' %}">Transaction History</a>
               <span class="block text-center text-gray-300 px-3 py-2">Welcome, {{ user.username }}</span>
+=======
+        <div class="hidden md:flex items-center space-x-8">
+            <a href="{% url 'main:show_main' %}"><h1 class="text-center text-gray-300 hover:text-white">Home</h4></a>
+        </div>
+        {% if user.is_authenticated %}
+        <div id="showUserDiscussion" class="hidden md:flex items-center space-x-8">
+          <a href="{% url 'main:show_user_discussion' user.id %}"><h1 class="text-center text-gray-300 hover:text-white">My Discussion</h4></a>
+        </div>
+        {% endif %}
+>>>>>>> d10ccdd1b3e4942f80322189b9f9de60d1f1baff
 
               <div class="relative">
                 <div onclick="toggleMenu()" class="cursor-pointer">

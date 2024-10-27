@@ -1,0 +1,278 @@
+{% load static %}
+
+<div id="kontainerDiscussionForm" style="display: flex; flex-direction: column; padding: 10px;">
+    <h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">Diskusi</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <p>Ada pertanyaan? Diskusikan dengan penjual atau pengguna lain</p>
+        <button id="discussionTalkBtn" style="background-color: #32c866; color: white; border: none; padding: 8px 16px; border-radius: 5px; font-weight: bold;">
+            Tulis Pertanyaan
+        </button>
+    </div>
+    <div id="discussionContent" style="margin-bottom: 20px;"></div>
+    <div id="paginationControls" style="display: flex; justify-content: center; margin-top: 20px;"></div>
+    <div id="addDiscussionBox" style="border-top: 1px solid #e5e5e5; padding-top: 10px; display: none;">
+        <form id="addDiscussionForm" method="POST" style="display: flex; flex-direction: column;">
+            {% csrf_token %}
+            <textarea id="message" name="message" placeholder="Apa yang ingin Anda tanyakan mengenai produk ini?" required style="padding: 8px; border: 1px solid #e5e5e5; border-radius: 5px; margin-bottom: 10px; height: 80px;"></textarea>
+            <button type="submit" id="submitDiscussionEntry" style="background-color: #32c866; color: white; border: none; padding: 8px 16px; border-radius: 5px;">
+                Save
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+    const productId = "{{ data.id }}";
+
+    let currentPage = 1;
+    let numPage = 0;
+
+    async function getForumEntries(page = 1) {
+        return fetch(`{% url 'main:show_forum_json' data.id %}?page=${page}`)
+            .then(res => res.json());
+    }
+
+    async function getUserProfileEntries(userId){
+        return fetch(`/user_profile_json/${userId}/`)
+        .then(res => res.json());
+    }
+
+    async function refreshForum(page = 1) {
+        currentPage = page;
+        document.getElementById("discussionContent").innerHTML = "";
+        let htmlString = "";
+        let replyHtml= "";
+        const forumData = await getForumEntries(page);
+        numPage = forumData.num_pages;
+        const forumEntries = JSON.parse(forumData.discussions);
+
+        if (forumEntries.length === 0) {
+            htmlString = `
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <img src="{% static 'image/no-discussion.png' %}" alt="no discussion" style="width: 64px; height: 64px; margin-bottom: 8px;"/>
+                    <p style="text-align: center; font-weight: bold;">Belum Ada Diskusi Produk</p>
+                </div>`;
+        } else {
+            for (const item of forumEntries) {
+                if (item.fields.parent === null) {
+                    const userProfileEntries = await getUserProfileEntries(item.fields.user);
+                    let replyHtml = await getRepliesForParent(item.pk, forumEntries);
+                    htmlString += `
+                        <div style="border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                <a class="user-picture" pic-id="${item.fields.user}" style="cursor: pointer;"><img src="${userProfileEntries.profile_picture ? userProfileEntries.profile_picture : '{% static "image/profile-picture.png" %}'}" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;"></a>
+                                <div>
+                                    <p><a style="font-weight: bold; cursor: pointer;" class="user-username" user-id="${item.fields.user}">${item.fields.commenter_name}</a> - ${item.fields.created_at}</p>
+                                    <p>${item.fields.message}</p>
+                                </div>
+                                <button class="three-dots-btn" style="background: none; border: none; font-size: 18px; cursor: pointer;">...</button>
+                                <div class="dropdown-content" style="display: none; position: absolute; background-color: white; min-width: 120px; box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); z-index: 1;">
+                                    <button class="delete-discussion-btn" data-id="${item.pk}" style="background: none; border: none; padding: 8px 16px; text-align: left; cursor: pointer;">Delete</button>
+                                </div>
+                            </div>
+                            <div style="margin-left: 50px;">
+                                ${replyHtml}
+                            </div>
+                            {% if user.is_authenticated %}
+                                <form class="replyForm" data-parent-id="${item.pk}" style="display: flex; margin-top: 10px; margin-left: 50px;">
+                                    <textarea type="text" name="message" placeholder="Isi komentar disini" required style="flex: 1; padding: 8px; border: 1px solid #e5e5e5; border-radius: 5px; margin-right: 10px;"></textarea>
+                                    <button type="submit" style="background-color: #32c866; color: white; border: none; padding: 8px 16px; border-radius: 5px;">
+                                        Balas
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>`;
+                }
+            };
+        }
+        document.getElementById("discussionContent").innerHTML = htmlString;
+        setupPaginationControls(forumData); 
+
+        document.querySelectorAll('.replyForm').forEach(form => {
+            form.onsubmit = addReply;
+        });
+
+        document.querySelectorAll('.three-dots-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const dropdown = this.nextElementSibling;
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+
+        document.querySelectorAll('.delete-discussion-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const discussionId = this.getAttribute('data-id');
+                deleteDiscussion(discussionId);
+            });
+        });
+
+        document.querySelectorAll('.user-picture').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const userId = Number(this.getAttribute('pic-id'));
+                window.location.href = `/user_discussion/${userId}/`;
+            });
+        });
+
+        document.querySelectorAll('.user-username').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const userId = Number(this.getAttribute('user-id'));
+                window.location.href = `/user_discussion/${userId}/`;
+            })
+        })
+    }
+
+    function setupPaginationControls(forumData) {
+        const paginationControls = document.getElementById("paginationControls");
+        paginationControls.innerHTML = "";  
+
+        if (forumData.has_previous) {
+            const prevButton = document.createElement("button");
+            prevButton.textContent = "Previous";
+            prevButton.onclick = () => refreshForum(currentPage - 1);
+            prevButton.style = "margin: 0 5px; padding: 5px 10px; border: none; background-color: #f0f0f0; cursor: pointer;";
+            paginationControls.appendChild(prevButton);
+        }
+
+        for (let i = 1; i <= numPage; i++) {
+            const page = document.createElement("button");
+            page.textContent = i;
+            page.onclick = () => refreshForum(i);
+            page.style = "margin: 0 5px; padding: 5px 10px; border: none; background-color: #f0f0f0; cursor: pointer;";
+            paginationControls.appendChild(page);
+        }
+
+        if (forumData.has_next) {
+            const nextButton = document.createElement("button");
+            nextButton.textContent = "Next";
+            nextButton.onclick = () => refreshForum(currentPage + 1);
+            nextButton.style = "margin: 0 5px; padding: 5px 10px; border: none; background-color: #f0f0f0; cursor: pointer;";
+            paginationControls.appendChild(nextButton);
+        }
+    }
+
+    async function getRepliesForParent(parentId, entries) {
+        let replyHtml = '';
+        for (const entry of entries) {
+            if (entry.fields.parent === parentId) {
+                const userProfileEntries = await getUserProfileEntries(entry.fields.user);
+                const userProfileUrl = `/user_discussion/${entry.fields.user}/`;
+                replyHtml += `
+                    <div style="display: flex; align-items: flex-start; margin-top: 10px;">
+                        <a class="user-picture" pic-id="${entry.fields.user}" style="cursor: pointer;"><img src="${userProfileEntries.profile_picture ? userProfileEntries.profile_picture : '{% static "image/profile-picture.png" %}'}" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;"></a>
+                        <div style="flex: 1; background-color: #f9f9f9; border-radius: 8px; padding: 10px;">
+                            <p><a style="font-weight: bold; cursor: pointer;" class="user-username" user-id="${entry.fields.user}">${entry.fields.commenter_name}</a> - ${entry.fields.created_at}</p>
+                            <p">${entry.fields.message}</p>
+                        </div>
+                        <button class="three-dots-btn" style="background: none; border: none; font-size: 18px; cursor: pointer;">...</button>
+                        <div class="dropdown-content" style="display: none; position: absolute; background-color: white; min-width: 120px; box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); z-index: 1;">
+                            <button class="delete-discussion-btn" data-id="${entry.pk}" style="background: none; border: none; padding: 8px 16px; text-align: left; cursor: pointer;">Delete</button>
+                        </div>
+                    </div>`;
+            }
+        };
+        return replyHtml;
+    }
+
+    async function deleteDiscussion(discussionId) {
+        fetch(`/delete_discussion/${discussionId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                refreshForum();
+            } else {
+                console.error('Failed to delete discussion.');
+            }
+        });
+    }
+
+    async function addDiscussion(event) {
+        event.preventDefault();
+
+        fetch(`/add_discussion_or_reply/${productId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken, 
+            },
+            body: new FormData(document.querySelector('#addDiscussionForm'))
+        })
+        .then(response => {
+            if (response.ok) {
+                refreshForum();
+                document.getElementById("addDiscussionForm").reset();
+            } else {
+                console.error('Failed to add discussion:', response.statusText);
+            }
+        });
+    }
+
+    document.getElementById("addDiscussionForm").onsubmit = addDiscussion;
+
+    async function addReply(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const parentId = form.getAttribute('data-parent-id');
+        
+        formData.append('parent_id', parentId);
+
+        fetch(`/add_discussion_or_reply/${productId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken
+            },
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                refreshForum();
+                form.reset();
+            } else {
+                console.error('Failed to add reply:', response.statusText);
+            }
+        });
+    }
+
+    const isAuthenticated = JSON.parse("{{ user.is_authenticated|yesno:'true,false' }}");
+
+    async function showDiscussionBox() {
+        if (isAuthenticated) {
+            document.getElementById('addDiscussionBox').style.display = 'block';
+        } else {
+            document.getElementById('addDiscussionBox').style.display = 'none'; 
+        }
+    }
+
+    window.onload = showDiscussionBox;
+
+    document.getElementById('discussionTalkBtn').addEventListener('click', function() {
+        if (!isAuthenticated) {
+            window.location.href = "{% url 'main:login_user' %}?next={{ request.path }}";
+        } else {
+            const targetElement = document.getElementById('addDiscussionBox');
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+
+    refreshForum();
+</script>

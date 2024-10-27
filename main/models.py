@@ -63,7 +63,9 @@ class Review(models.Model):
 class Forum(models.Model):
     product = models.ForeignKey(Product, related_name='discussions', on_delete=models.CASCADE)  # Relasi balik ke product
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    commenter_name = models.CharField(max_length=255, default='Anonymous')
     message = models.TextField()
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Wishlist(models.Model):

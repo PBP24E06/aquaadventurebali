@@ -34,6 +34,7 @@
                 
                 <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
             </div>
+            {% include 'product_discussion.html' %}
 
             <!-- Tombol Khusus Admin -->
             {% if request.user.profile.role == "ADMIN" %}

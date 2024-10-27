@@ -26,6 +26,16 @@ from main.forms import TransactionForm
 from main.forms import ProductForm
 from django.utils.html import strip_tags
 import os
+from django.core.paginator import Paginator
+from django.db.models import Q
+from main.models import Product, UserProfile, Forum
+from django.core.exceptions import PermissionDenied
+from functools import wraps
+from django.contrib.auth.models import User
+from main.forms import ProductForm,CheckoutForm, ForumForm
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_http_methods
+from urllib.parse import unquote
 
 
 
@@ -62,6 +72,7 @@ def show_main(request):
     }
     
     return render(request, "main.html", context)
+
 
 def login_user(request):
   if request.method == 'POST':
@@ -368,3 +379,125 @@ def create_review_by_ajax(request, id):
     
     
     return HttpResponse(b"CREATED", status=201)
+   
+
+@require_POST
+@login_required
+def add_discussion_or_reply(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    parent_id = request.POST.get("parent_id")
+    parent_comment = None
+
+    if parent_id and parent_id != 'undefined':
+        try:
+            parent_comment = Forum.objects.get(id=parent_id)
+        except Forum.DoesNotExist:
+            return HttpResponse("Parent comment does not exist", status=404)
+
+    form = ForumForm(request.POST, user=request.user, product=product, parent=parent_comment)
+
+    if form.is_valid():
+        form.save()
+        return HttpResponse(b"CREATED", status=201)
+    else:
+        return HttpResponse("Form data invalid", status=400)
+
+def show_user_profile_json(request, userId):
+   user_profile = UserProfile.objects.filter(user=userId)
+   return HttpResponse(serializers.serialize("json", user_profile), content_type="application/json")
+
+def show_forum_json(request, product_id):
+    discussions = Forum.objects.filter(product_id=product_id).order_by('-created_at')
+
+    top_level_discussions = discussions.filter(parent=None)
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(top_level_discussions, 10) 
+    page_obj = paginator.get_page(page_number)
+    
+    top_level_ids = [discussion.id for discussion in page_obj]
+    
+    filtered_discussions = discussions.filter(
+        Q(id__in=top_level_ids) | Q(parent_id__in=top_level_ids)
+    )
+    
+    top_level_data = serializers.serialize("json", page_obj)
+    filtered_discussions_data = serializers.serialize("json", filtered_discussions)
+    
+    return JsonResponse({
+        'top_level_discussions': top_level_data, 
+        'discussions': filtered_discussions_data, 
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'num_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+    })
+
+
+def show_user_discussion(request, user_id):
+    user = request.user
+    user_requested = get_object_or_404(User, pk=user_id)
+
+    context = {
+        'user_requested': user_requested,
+        'user': user,
+    }
+    
+    return render(request, 'user_discussion.html', context)
+
+def show_user_discussion_json(request, user_id):
+    user_requested = get_object_or_404(User, pk=user_id)
+    discussions = Forum.objects.filter(user=user_requested).order_by('-created_at')
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(discussions, 10)
+    page_obj = paginator.get_page(page_number)
+
+    paged_discussion_id = [discussion.id for discussion in page_obj]
+
+    filtered_discussions = discussions.filter(
+        Q(id__in=paged_discussion_id) | Q(parent_id__in=paged_discussion_id)
+    ).order_by('-created_at')
+
+    discussion_data = []
+    for discussion in filtered_discussions:
+        product = Product.objects.get(id=discussion.product_id)
+
+        parent_message = discussion.parent.message if discussion.parent else None
+        parent_commenter = discussion.parent.commenter_name if discussion.parent else None
+
+        raw_url = product.gambar.url if product.gambar else None
+        product_gambar_url = f"{unquote(raw_url).lstrip('/')}" if raw_url else None
+
+        discussion_data.append({
+            "pk": discussion.pk,
+            "fields": {
+                "user_requested" : user_id,
+                "product_id": discussion.product_id,
+                "product_name": product.name,
+                "product_gambar": product_gambar_url,
+                "commenter_name": discussion.commenter_name,
+                "message": discussion.message,
+                "created_at": discussion.created_at.isoformat(),
+                "parent": discussion.parent_id,
+                "parent_message": parent_message,
+                "parent_commenter": parent_commenter
+            }
+        })
+
+    return JsonResponse({
+        'discussions': discussion_data,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'num_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+    })
+
+@require_http_methods(["DELETE"])
+def delete_discussion(request, discussion_id):
+    discussion = get_object_or_404(Forum, id=discussion_id)
+    if request.user != discussion.user:
+        return HttpResponseForbidden("You are not allowed to delete this discussion.")
+    
+    discussion.delete()
+    return JsonResponse({"message": "Discussion deleted successfully."})
+       
+   
