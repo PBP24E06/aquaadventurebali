@@ -118,7 +118,7 @@ def register(request):
 
     if form.is_valid():
       user = form.save()
-      UserProfile.objects.create(user=user, role='CUSTOMER')
+      UserProfile.objects.create(user=user, role='CUSTOMER', profile_picture="static/ikon_botak/foto_ikon.jpg")
       messages.success(request, 'Your account has been successfully created!')
       return redirect('main:login_user')
     

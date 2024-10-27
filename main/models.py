@@ -48,7 +48,7 @@ class Product(models.Model):
             avg = sum(review.rating for review in reviews) / len(reviews)
             return f"{avg:.1f}"
         return 0
-
+    
 
 class Review(models.Model):
     product = models.ForeignKey(Product, related_name='reviews', on_delete=models.CASCADE)  # Relasi balik ke product

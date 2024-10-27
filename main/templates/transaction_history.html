@@ -16,20 +16,25 @@
         <form id="reviewForm" method="POST" onsubmit="return createReview()">
             <div class="flex flex-col gap-y-4">
                 <div>
-                    <label class="block mb-2">Rating: <span id="ratingnumber">5.0</span></label>
-                    <input type="range" name="rating" id="rating" min="1" max="5" step="0.5" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" oninput="updateRating(this.value)">
+                    <label class="block mb-2">Rating: <span id="ratingnumber">5.0</span> <span id="ratingEmoji">😍</span></label>
+                    <input type="range" name="rating" id="rating" min="1" max="5" step="0.5" value="5" 
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" 
+                           oninput="updateRatingWithEmoji(this.value)">
                 </div>
 
                 <div>
                     <label class="block mb-2">Your Review</label>
-                    <textarea name="review_text" id="review_text" class="w-full border rounded-md p-2 h-32" placeholder="Share your experience with this product"></textarea>
+                    <textarea name="review_text" id="review_text" class="w-full border rounded-md p-2 h-32" 
+                              placeholder="Share your experience with this product"></textarea>
                 </div>
 
                 <div class="flex justify-end gap-x-4 mt-4">
-                    <button type="button" onclick="closeReviewModal()" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                    <button type="button" onclick="closeReviewModal()" 
+                            class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
                         Cancel
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700" 
+                            onclick="closeReviewModal()">
                         Submit Review
                     </button>
                 </div>
@@ -178,10 +183,12 @@
         .then(data => {
             console.log("Akhir");
             closeReviewModal();
+            window.location.reload();
         })
         .catch(err => console.log("ERROR"));
 
         form.reset();
+        window.location.reload();
         return false;
     }
     document.querySelector("#reviewForm").addEventListener("submit", (e) => {
@@ -241,6 +248,30 @@
         e.preventDefault();
         createComplaint();
     });
+    function updateRatingWithEmoji(value) {
+    document.getElementById('ratingnumber').textContent = value;
+    
+    const rating = parseFloat(value);
+    let emoji = '';
+    
+    if (rating <= 1.5) {
+        emoji = '😔'; // Very disappointed
+    } else if (rating <= 2.5) {
+        emoji = '🙁'; // Sad
+    } else if (rating <= 3.5) {
+        emoji = '😐'; // Neutral
+    } else if (rating <= 4.5) {
+        emoji = '🙂'; // Happy
+    } else {
+        emoji = '😄'; // Very happy
+    }
+    
+    document.getElementById('ratingEmoji').textContent = emoji;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateRatingWithEmoji(document.getElementById('rating').value);
+});
 
 </script>
 

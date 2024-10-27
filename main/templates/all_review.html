@@ -6,11 +6,22 @@
   {% include "navbar.html" %}
 
 <div class="pt-20">
+
+  <div class="container mx-auto px-4 mb-4">
+    <a href="{% url 'main:product_detail' product.pk %}" 
+       class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors duration-200">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      Back to Product
+    </a>
+  </div>
+
   <div class="flex space-x-8">
     <!-- Left column: Product Info -->
     <div class="w-1/4 sticky top-4 h-screen bg-white p-4 shadow-md">
       <h2 class="text-xl font-bold mb-4">{{ product.name }}</h2>
-      <img src="{{ product.gambar }}" alt="{{ product.name }}" class="mb-4 w-full rounded-md shadow-md">
+      <img src="{{ product.gambar.url }}" alt="{{ product.name }}" class="mb-4 w-full rounded-md shadow-md">
       <p><strong>Toko:</strong> {{ product.toko }}</p>
       <p><strong>Kategori:</strong> {{ product.kategori }}</p>
       <p><strong>Harga:</strong> {{ product.harga }}</p>
@@ -20,9 +31,12 @@
 
     <!-- Right column: Reviews Section -->
     <div class="w-3/4">
-      <!-- Average Rating at the top -->
       <div class="bg-gray-100 p-4 rounded-md mb-4">
-        <h3 class="text-2xl font-semibold mb-2">Rating: {{ product.average_rating }} / 5.0</h3>
+        {% if product.reviews.all.count > 0 %}
+          <h3 class="text-2xl font-semibold mb-2">Rating: {{ product.average_rating }} / 5.0 ({{product.reviews.all.count}} reviews)</h3>
+        {% else %}
+          <h3 class="text-2xl font-semibold mb-2">No Review</h3>
+        {% endif %}
       </div>
 
       <!-- Reviews -->

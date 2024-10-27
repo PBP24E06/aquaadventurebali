@@ -77,7 +77,7 @@
                     <div class="grid grid-cols-3 items-start gap-4">
                         <div class="col-span-3 flex items-start gap-4">
                             <div class="w-28 h-28 max-sm:w-24 max-sm:h-24 shrink-0 bg-gray-100 p-2 rounded-md">
-                                <img src='{{ data.gambar }}' class="w-full h-full object-contain" />
+                                <img src='{{ data.gambar.url }}' class="w-full h-full object-contain" />
                             </div>
             
                             <div class="flex flex-col justify-between flex-grow">
@@ -144,7 +144,7 @@
           <!-- Modal footer -->
           <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 p-6 border-t border-gray-200 rounded-b justify-center md:justify-end">
             <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg" id="cancelButtonCheckout">Cancel</button>
-            <button type="submit" id="submitCheckout" form="checkoutForm" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Checkout</button>
+            <button type="submit" id="submitCheckout" form="checkoutForm" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg alert" onclick="hideModalCheckout()">Checkout</button>
           </div>
         </div>
       </div>
