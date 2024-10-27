@@ -28,6 +28,7 @@ from django.utils.html import strip_tags
 from main.forms import ProductForm,CheckoutForm
 from .forms import ReportForm
 from .models import Report, Product
+import os
 
 
 
@@ -42,6 +43,9 @@ def show_main(request):
     # Filtering by price range
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+
+    for product in products:
+        product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
 
     if min_price:
         products = products.filter(harga__gte=min_price)
@@ -128,6 +132,11 @@ def make_admin(request, user_id):
   
 @login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
+
+  if request.user.profile.role == 'ADMIN':
+    messages.info(request, 'You are already an admin!')
+    return redirect('main:show_main')
+  
   if request.method == 'POST':
     admin_password = request.POST.get('admin_password')
 
@@ -146,6 +155,7 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
     return redirect('main:show_main')
   
   return render(request, 'request_admin.html', {})
+     
 
 @login_required
 def create_review(request, id):
@@ -220,7 +230,16 @@ def checkout(request, id):
 def view_transaction_history(request):
   transaction_list = Transaction.objects.filter(user=request.user)
 
-  context = {'transaction_list': transaction_list}
+  reviewed_products = set(Review.objects.filter(user=request.user).values_list('product_id', flat=True))
+
+  for transaction in transaction_list:
+    transaction.has_reviewed = transaction.product.id in reviewed_products
+    transaction.product.formatted_harga = f"{format(transaction.product.harga, ',').replace(',', '.')}"
+
+  context = {
+    'transaction_list': transaction_list,
+    'user': request.user
+    }
 
   return render(request, "transaction_history.html", context)
 
@@ -228,14 +247,14 @@ def view_transaction_history(request):
 @admin_required
 @csrf_exempt
 @require_POST
-def create_product(request):
+def add_product_ajax(request):
     name = request.POST.get("name")
     kategori = request.POST.get("kategori")
     harga = request.POST.get("harga")
     toko = request.POST.get("toko")
     alamat = request.POST.get("alamat")
     kontak = request.POST.get("kontak")
-    gambar = request.FILES.get("gambar")  # Pastikan menggunakan request.FILES untuk upload file
+    gambar = request.FILES.get("gambar")
 
     new_product = Product(
         name=name,
@@ -256,6 +275,11 @@ def create_product(request):
 @admin_required
 def delete_product(request, id):
     product = Product.objects.get(pk = id)
+    if product.gambar:
+        gambar_path = product.gambar.path
+        if os.path.isfile(gambar_path):
+            os.remove(gambar_path)
+
     product.delete()
     return HttpResponseRedirect(reverse('main:show_main'))
 
@@ -301,8 +325,10 @@ def get_product_data_for_checkout(request, id):
         'harga': product.harga,
     }
     return JsonResponse(data)  
+
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
+    product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
     return render(request, 'product_detail.html', {'data': product})
 
 @login_required
@@ -324,6 +350,28 @@ def edit_profile(request):
 
     return render(request, 'edit_profile.html', {'form': form})
 
+@csrf_exempt
+@require_POST
+def create_review_by_ajax(request, id):
+    product = Product.objects.get(pk=id)
+    user = request.user
+    rating = request.POST.get("rating")
+    review_text = request.POST.get("review_text")
+    
+    print("Create review by ajax called")
+
+    new_review = Review(
+       product = product,
+       user = user,
+       rating = rating,
+       review_text = review_text,
+    )
+    new_review.save()
+
+    print("new review saved")
+    
+    
+    return HttpResponse(b"CREATED", status=201)
 
 @login_required
 def create_report(request, product_id):

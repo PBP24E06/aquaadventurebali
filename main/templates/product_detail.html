@@ -1,21 +1,23 @@
 {% extends "base.html" %}
+
 {% block content %}
+{% include "navbar.html" %}
 
 
-<div style="padding: 20px; max-width: 1200px; margin: auto;">
-    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+<div class="pt-40">
+    <div class="mx-auto max-w-7xl px-8 bg-white rounded-xl shadow-lg overflow-hidden p-12">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
         <!-- Bagian Gambar Produk -->
-        <div style="flex: 1; min-width: 300px;">
+        <div style="flex: 1; min-width: 300px;" class="border border-gray">
             <img src="{{ data.gambar.url }}" alt="{{ data.name }}" style="width: 100%; height: auto; border-radius: 10px;">
         </div>
-        
         <!-- Bagian Informasi Produk -->
         <div style="flex: 2; min-width: 300px;">
             <h1 style="font-size: 2em; color: #333;"><strong>{{ data.name }}</strong></h1>
             <p style="color: #888; font-size: 1.1em;"><strong>Kategori:</strong> {{ data.kategori }}</p>
             
             <!-- Harga -->
-            <p style="font-size: 1.8em; color: #333; font-weight: bold; margin: 15px 0;">Rp {{ data.harga }}</p>
+            <p style="font-size: 1.8em; color: #333; font-weight: bold; margin: 15px 0;">Rp {{ data.formatted_harga }}</p>
             
             <!-- Detail Toko dan Kontak -->
             <p style="margin: 5px 0; color: #666;"><strong>Toko:</strong> {{ data.toko }}</p>
@@ -41,6 +43,9 @@
                     </a>
                     <a href="{% url 'main:edit_product' data.pk %}" style="text-decoration: none;">
                         <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Edit</button>
+                    </a>
+                    <a href="{% url 'main:create_report' data.pk %}">
+                        <button style="background-color: blue; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
                     </a>
                 </div>
             {% endif %}
@@ -73,7 +78,7 @@
             
                             <div class="flex flex-col justify-between flex-grow">
                                 <h3 class="text-base font-bold text-gray-800">{{ data.name }}</h3>
-                                <h4 class="text-lg max-sm:text-base font-bold text-gray-800">Rp {{ data.harga }}</h4>
+                                <h4 class="text-lg max-sm:text-base font-bold text-gray-800">Rp {{ data.formatted_harga }}</h4>
                             </div>
                         </div>
 
