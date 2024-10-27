@@ -88,9 +88,6 @@
                 <div class="col-span-1 col-start-5 flex justify-center max-lg:hidden">
                     <p class="font-medium text-lg leading-8 text-gray-600">Checkout Time</p>
                 </div>
-                <div class="col-span-1 col-start-6 flex justify-center max-lg:hidden">
-                    <p class="font-medium text-lg leading-8 text-gray-500">Contact Number</p>
-                </div>
             </div>
             {% if not transaction_list %}
                 <div class="flex flex-col items-center justify-center min-h-[24rem] p-6">
@@ -119,7 +116,11 @@
                                 Write Review
                             </button>
                         {% endif %}
-
+                    </div>
+                    <div class="col-span-8 sm:col-span-4 lg:col-span-1 flex items-center justify-center ">
+                        <p class="font-semibold text-base leading-8 text-indigo-600 text-center whitespace-normal break-words max-w-xs">{{ transaction.checkout_time }}</p>
+                    </div>
+                    <div class="col-span-8 sm:col-span-4 lg:col-span-1 flex items-center justify-center ">
                         {% if transaction.has_complained %}
                             <span class="text-gray-500 text-sm text-center ml-2">Complaint submitted!</span>
                         {% else %}
@@ -127,12 +128,6 @@
                                 Write Complaint
                             </button>
                         {% endif %}
-                    </div>
-                    <div class="col-span-8 sm:col-span-4 lg:col-span-1 flex items-center justify-center ">
-                        <p class="font-semibold text-base leading-8 text-indigo-600 text-center whitespace-normal break-words max-w-xs">{{ transaction.checkout_time }}</p>
-                    </div>
-                    <div class="col-span-8 sm:col-span-4 lg:col-span-1 flex items-center justify-center ">
-                        <p class="font-semibold text-base leading-8 text-black">{{ transaction.phone_number }}</p>
                     </div>
                 
                 </div>
