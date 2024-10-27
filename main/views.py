@@ -19,6 +19,9 @@ from main.models import Product, UserProfile, Review
 from main.forms import ReviewForm, UserProfileForm
 
 from main.models import Product, UserProfile
+from django.core.paginator import Paginator
+from django.db.models import Q
+from main.models import Product, UserProfile, Forum
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
@@ -407,8 +410,8 @@ def show_user_profile_json(request, userId):
    return HttpResponse(serializers.serialize("json", user_profile), content_type="application/json")
 
 def show_forum_json(request, product_id):
-    discussions = Forum.objects.filter(product_id=product_id).order_by('-created_at')
 
+    discussions = Forum.objects.filter(product_id=product_id).order_by('-created_at')
     top_level_discussions = discussions.filter(parent=None)
     page_number = request.GET.get('page', 1)
     paginator = Paginator(top_level_discussions, 10) 
@@ -419,11 +422,18 @@ def show_forum_json(request, product_id):
     filtered_discussions = discussions.filter(
         Q(id__in=top_level_ids) | Q(parent_id__in=top_level_ids)
     )
-    
+
+    user_requester = None
+    if request.user.is_authenticated:
+        user_requester = serializers.serialize("json", [request.user])
+    else:
+        user_requester = "AnonymousUser"
+
     top_level_data = serializers.serialize("json", page_obj)
     filtered_discussions_data = serializers.serialize("json", filtered_discussions)
     
     return JsonResponse({
+        'user_requester': user_requester,
         'top_level_discussions': top_level_data, 
         'discussions': filtered_discussions_data, 
         'has_next': page_obj.has_next(),
