@@ -94,7 +94,10 @@ class Report(models.Model):
         ('Resolved', 'Resolved'),
     )
     status = models.CharField(max_length=10, choices=status_choices, default='Pending')
-    created_at = models.DateTimeField(auto_now_add=True)  # Automatically adds timestamp
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('product', 'user')
 
     def __str__(self):
         return f"Complaint from {self.user} about {self.product.name}"

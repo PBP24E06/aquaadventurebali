@@ -239,9 +239,11 @@ def view_transaction_history(request):
   transaction_list = Transaction.objects.filter(user=request.user)
 
   reviewed_products = set(Review.objects.filter(user=request.user).values_list('product_id', flat=True))
+  complained_products = set(Report.objects.filter(user=request.user).values_list('product_id', flat=True))
 
   for transaction in transaction_list:
     transaction.has_reviewed = transaction.product.id in reviewed_products
+    transaction.has_complained = transaction.product.id in complained_products
     transaction.product.formatted_harga = f"{format(transaction.product.harga, ',').replace(',', '.')}"
 
   context = {
@@ -382,26 +384,21 @@ def create_review_by_ajax(request, id):
     return HttpResponse(b"CREATED", status=201)
 
 @login_required
-def create_report(request, product_id):
+@csrf_exempt
+def create_report_by_ajax(request, product_id):
     product = Product.objects.get(pk=product_id)
-    
+
     if request.method == 'POST':
         form = ReportForm(request.POST)
         if form.is_valid():
             report = form.save(commit=False)
-            report.user = request.user  # Link the report to the logged-in user
-            report.product = product  # Link the report to the product
+            report.user = request.user
+            report.product = product
             report.save()
-            messages.success(request, 'Your complaint has been submitted successfully.')
-            return redirect('main:show_main')
-    else:
-        form = ReportForm()
-
-    context = {
-        'form': form,
-        'product': product
-    }
-    return render(request, 'create_report.html', context)
+            return HttpResponse("Complaint submitted successfully!", status=201)
+        else:
+            return HttpResponse("Failed to submit complaint. Please check the form for errors.", status=400)
+    return HttpResponse("Invalid request method.", status=405)
    
    
 
