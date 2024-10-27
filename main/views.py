@@ -1,17 +1,20 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import datetime
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
+from main.models import Product, UserProfile, Review, Transaction
+from main.forms import ReviewForm
+
 from main.models import Product, UserProfile, Review
 from main.forms import ReviewForm, UserProfileForm
 from django.core.paginator import Paginator
@@ -20,7 +23,11 @@ from main.models import Product, UserProfile, Forum
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
-from main.forms import ProductForm,CheckoutForm, ForumForm
+from main.forms import TransactionForm
+from main.forms import ProductForm
+from django.utils.html import strip_tags
+import os
+from main.forms import ProductForm, ForumForm
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from urllib.parse import unquote
@@ -29,7 +36,6 @@ from urllib.parse import unquote
 
 def show_main(request):
     products = Product.objects.all()
-
     # Filtering by category
     kategori_filter = request.GET.get('kategori')
 
@@ -40,6 +46,9 @@ def show_main(request):
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
+    for product in products:
+        product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
+
     if min_price:
         products = products.filter(harga__gte=min_price)
 
@@ -47,8 +56,10 @@ def show_main(request):
         products = products.filter(harga__lte=max_price)
 
     print(f"kategori: {kategori_filter}, min: {min_price}, max: {max_price}")
-
     print(f"Size: {products.count()}")
+
+    for product in products:
+        product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
 
     context = {
        "data": products,
@@ -123,6 +134,11 @@ def make_admin(request, user_id):
   
 @login_required
 def request_admin(request):  # Form untuk mengubah user menjadi admin
+
+  if request.user.profile.role == 'ADMIN':
+    messages.info(request, 'You are already an admin!')
+    return redirect('main:show_main')
+  
   if request.method == 'POST':
     admin_password = request.POST.get('admin_password')
 
@@ -141,6 +157,7 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
     return redirect('main:show_main')
   
   return render(request, 'request_admin.html', {})
+     
 
 @login_required
 def create_review(request, id):
@@ -165,11 +182,17 @@ def create_review(request, id):
   return render(request, "review_form.html", context)
 
 
-def show_json(request):
+def show_json_product(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+def show_json_transaction(request):
+    data = Transaction.objects.filter(user=request.user)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+
+
+@login_required(login_url='/login')
 def all_review(request, id):
     product = Product.objects.get(pk=id)
     reviews = product.reviews.all()
@@ -179,49 +202,86 @@ def all_review(request, id):
     }
     return render(request, "all_review.html", context)
 
+@login_required(login_url='/login')
 def checkout(request, id):
-    # Use get_object_or_404 to handle non-existing products gracefully
-    product = Product.objects.get(pk=id)
-    total_harga = product.harga + 10000  # Add shipping cost
+  product = Product.objects.get(pk=id)
+  total_harga = product.harga + 10000
 
-    if request.method == 'POST':
-        form = CheckoutForm(request.POST)
-        if form.is_valid():
-            cart = form.save(commit=False)  # Create instance without saving
-            cart.product = product  # Associate the product with the cart
-            cart.user = request.user  # Set the current user (assuming you want to save this)
-            cart.save()  # Save the cart instance to the database
-            messages.success(request, 'Checkout successful!')  # Provide feedback
-            return redirect('some_success_url')  # Redirect after successful save
-        else:
-            messages.error(request, 'Please correct the errors below.')
+  if request.method == 'POST':
+      form = TransactionForm(request.POST)
+      if form.is_valid():
+          # Process form data here, e.g., save the order, send an email, etc.
+          transaction = form.save(commit=False)
+          transaction.product = product
+          transaction.user = request.user
+          transaction.save()
+          return redirect('main:show_main')
 
-    else:
-        form = CheckoutForm()
+  else:
+      form = TransactionForm()
 
-    context = {
-        'product': product,
-        'total_harga': total_harga,
-        'form': form
+
+  context = {
+      'product': product,
+      'total_harga': total_harga,
+      'form': form
+  }
+  return render(request, "checkout.html", context)
+
+@login_required(login_url='/login')
+def view_transaction_history(request):
+  transaction_list = Transaction.objects.filter(user=request.user)
+
+  reviewed_products = set(Review.objects.filter(user=request.user).values_list('product_id', flat=True))
+
+  for transaction in transaction_list:
+    transaction.has_reviewed = transaction.product.id in reviewed_products
+    transaction.product.formatted_harga = f"{format(transaction.product.harga, ',').replace(',', '.')}"
+
+  context = {
+    'transaction_list': transaction_list,
+    'user': request.user
     }
-    return render(request, "checkout.html", context)
+
+  return render(request, "transaction_history.html", context)
 
 @login_required
 @admin_required
-def create_product(request):
-  form = ProductForm(request.POST or None )
+@csrf_exempt
+@require_POST
+def add_product_ajax(request):
+    name = request.POST.get("name")
+    kategori = request.POST.get("kategori")
+    harga = request.POST.get("harga")
+    toko = request.POST.get("toko")
+    alamat = request.POST.get("alamat")
+    kontak = request.POST.get("kontak")
+    gambar = request.FILES.get("gambar")
 
-  if form.is_valid() and request.method == "POST":
-    form.save()
-    return redirect('main:show_main')
-  
-  context = {'form': form}
-  return render(request, "create_product.html", context)
+    new_product = Product(
+        name=name,
+        kategori=kategori,
+        harga=harga,
+        toko=toko,
+        alamat=alamat,
+        kontak=kontak,
+        gambar=gambar
+    )
+    new_product.save()
+
+    return HttpResponse(b"CREATED", status=201)
+
+
 
 @login_required
 @admin_required
 def delete_product(request, id):
     product = Product.objects.get(pk = id)
+    if product.gambar:
+        gambar_path = product.gambar.path
+        if os.path.isfile(gambar_path):
+            os.remove(gambar_path)
+
     product.delete()
     return HttpResponseRedirect(reverse('main:show_main'))
 
@@ -239,8 +299,38 @@ def edit_product(request, id):
     context = {'form': form}
     return render(request, "edit_product.html", context)
 
+
+@csrf_exempt
+@require_POST
+def checkout_by_ajax(request, id):
+    name = strip_tags(request.POST.get("name"))
+    email = strip_tags(request.POST.get("email"))
+    phone_number = strip_tags(request.POST.get("phone_number"))
+    product = Product.objects.get(pk=id)
+    user = request.user
+    
+
+    new_transaction = Transaction(
+        name=name, email=email,
+        phone_number=phone_number,
+        product=product, user=user
+    )
+    new_transaction.save()
+
+    return HttpResponse(b"CREATED", status=201) 
+
+def get_product_data_for_checkout(request, id):
+    product = Product.objects.get(pk=id)
+    data = {
+        'name': product.name,
+        'gambar': product.gambar.url,
+        'harga': product.harga,
+    }
+    return JsonResponse(data)  
+
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
+    product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
     return render(request, 'product_detail.html', {'data': product})
 
 @login_required
@@ -261,6 +351,30 @@ def edit_profile(request):
         form = UserProfileForm(instance=profile)
 
     return render(request, 'edit_profile.html', {'form': form})
+
+@csrf_exempt
+@require_POST
+def create_review_by_ajax(request, id):
+    product = Product.objects.get(pk=id)
+    user = request.user
+    rating = request.POST.get("rating")
+    review_text = request.POST.get("review_text")
+    
+    print("Create review by ajax called")
+
+    new_review = Review(
+       product = product,
+       user = user,
+       rating = rating,
+       review_text = review_text,
+    )
+    new_review.save()
+
+    print("new review saved")
+    
+    
+    return HttpResponse(b"CREATED", status=201)
+
    
 
 @require_POST
@@ -289,8 +403,8 @@ def show_user_profile_json(request, userId):
    return HttpResponse(serializers.serialize("json", user_profile), content_type="application/json")
 
 def show_forum_json(request, product_id):
-    discussions = Forum.objects.filter(product_id=product_id).order_by('-created_at')
 
+    discussions = Forum.objects.filter(product_id=product_id).order_by('-created_at')
     top_level_discussions = discussions.filter(parent=None)
     page_number = request.GET.get('page', 1)
     paginator = Paginator(top_level_discussions, 10) 
@@ -301,11 +415,18 @@ def show_forum_json(request, product_id):
     filtered_discussions = discussions.filter(
         Q(id__in=top_level_ids) | Q(parent_id__in=top_level_ids)
     )
-    
+
+    user_requester = None
+    if request.user.is_authenticated:
+        user_requester = serializers.serialize("json", [request.user])
+    else:
+        user_requester = "AnonymousUser"
+
     top_level_data = serializers.serialize("json", page_obj)
     filtered_discussions_data = serializers.serialize("json", filtered_discussions)
     
     return JsonResponse({
+        'user_requester': user_requester,
         'top_level_discussions': top_level_data, 
         'discussions': filtered_discussions_data, 
         'has_next': page_obj.has_next(),

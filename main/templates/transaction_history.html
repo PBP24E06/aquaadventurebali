@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "navbar.html" %}
+
+<div id="crudModalReview" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold">Write a Review</h3>
+            <button onclick="closeReviewModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form id="reviewForm" method="POST" onsubmit="return createReview()">
+            <div class="flex flex-col gap-y-4">
+                <div>
+                    <label class="block mb-2">Rating: <span id="ratingnumber">5.0</span></label>
+                    <input type="range" name="rating" id="rating" min="1" max="5" step="0.5" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" oninput="updateRating(this.value)">
+                </div>
+
+                <div>
+                    <label class="block mb-2">Your Review</label>
+                    <textarea name="review_text" id="review_text" class="w-full border rounded-md p-2 h-32" placeholder="Share your experience with this product"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-x-4 mt-4">
+                    <button type="button" onclick="closeReviewModal()" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                        Submit Review
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<section class="py-24 bg-white">
+    <div class="w-full max-w-7xl mx-auto px-4 md:px-8">
+        <div class="main-data p-8 sm:p-14 bg-gray-50 rounded-3xl">
+            <h2 class="text-center font-manrope font-semibold text-4xl text-black mb-16">Order History</h2>
+            <div class="grid grid-cols-6 gap-4 pb-7">
+                <div class="col-span-1 col-start-2 flex justify-center">
+                    <p class="font-medium text-lg leading-8 text-indigo-600">Product</p>
+                </div>
+                <div class="col-span-1 col-start-4 flex justify-center max-lg:hidden">
+                </div>
+                <div class="col-span-1 col-start-5 flex justify-center max-lg:hidden">
+                    <p class="font-medium text-lg leading-8 text-gray-600">Checkout Time</p>
+                </div>
+                <div class="col-span-1 col-start-6 flex justify-center max-lg:hidden">
+                    <p class="font-medium text-lg leading-8 text-gray-500">Contact Number</p>
+                </div>
+            </div>
+            {% for transaction in transaction_list %}
+            <div
+                class="box p-8 rounded-3xl bg-gray-100 grid grid-cols-6 mb-7 transition-all duration-500 hover:bg-indigo-50 max-lg:max-w-xl max-lg:mx-auto">
+
+                <div class="col-span-8 sm:col-span-4 lg:col-span-1 sm:row-span-4 lg:row-span-1">
+                    <img src="{{ transaction.product.gambar.url }}" alt="product image" class="max-lg:w-auto max-sm:mx-auto rounded-xl object-cover">
+                </div>
+                <div
+                    class="col-span-8 sm:col-span-4 lg:col-span-2 flex h-full justify-center px-4 flex-col max-lg:items-center">
+                    <h5 class="font-manrope font-semibold text-xl leading-9 text-black mb-1 whitespace-normal break-words">
+                        {{ transaction.product.name }}</h5>
+                        <p class="font-normal text-base leading-7 text-gray-600 max-md:text-center">Rp {{ transaction.product.formatted_harga }}</p>
+                </div>
+
+                <div class="col-span-1 sm:col-span-4 lg:col-span-1 flex items-center justify-center">
+                    {% if transaction.has_reviewed %}
+                        <span class="text-gray-500 text-sm text-center">Already reviewed!</span>
+                    {% else %}
+                        <button onclick="openReviewModal('{{ transaction.product.id }}')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200 cursor-pointer">
+                            Write Review
+                        </button>
+                    {% endif %}
+                </div>
+                <div class="col-span-8 sm:col-span-4 lg:col-span-1 flex items-center justify-center ">
+                    <p class="font-semibold text-base leading-8 text-indigo-600 text-center whitespace-normal break-words max-w-xs">{{ transaction.checkout_time }}</p>
+                </div>
+                <div class="col-span-8 sm:col-span-4 lg:col-span-1 flex items-center justify-center ">
+                    <p class="font-semibold text-base leading-8 text-black">{{ transaction.phone_number }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+                               
+<script>
+    function updateRating(value) {
+        document.getElementById('ratingnumber').textContent = parseFloat(value).toFixed(1);
+    }   
+
+    function openReviewModal(productId) {
+        document.getElementById('crudModalReview').classList.remove('hidden');
+        document.getElementById('crudModalReview').classList.add('flex');
+
+        const form = document.getElementById("reviewForm");
+        form.dataset.productId = productId;
+    }
+
+    function closeReviewModal() {
+        document.getElementById('crudModalReview').classList.add('hidden');
+        document.getElementById('crudModalReview').classList.remove('flex');
+        document.getElementById('reviewForm').reset();
+    }    
+
+    function createReview() {
+        const form = document.querySelector("#reviewForm");
+        const productId = form.dataset.productId;
+        console.log("awal");  // Debug print
+
+        fetch(`create-review-by-ajax/${productId}`, {
+            method: "POST",
+            body: new FormData(form),
+            
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log("response ok");
+                return response.json();
+            } else {
+                console.log("Failed creating review");
+                throw new Error('Failed creating review!');
+            }
+        })
+        .then(data => {
+            console.log("Akhir");
+            closeReviewModal();
+        })
+        .catch(err => console.log("ERROR"));
+
+        form.reset();
+        return false;
+    }
+    document.querySelector("#reviewForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        createReview();
+    })
+
+</script>
+
+{% endblock content %}
