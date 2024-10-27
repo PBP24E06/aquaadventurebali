@@ -25,7 +25,7 @@ from django.contrib.auth.models import User
 from main.forms import TransactionForm
 from main.forms import ProductForm
 from django.utils.html import strip_tags
-from main.forms import ProductForm,CheckoutForm
+from main.forms import ProductForm,TransactionForm
 from .forms import ReportForm
 from .models import Report, Product
 import os
