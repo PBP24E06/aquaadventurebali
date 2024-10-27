@@ -10,6 +10,7 @@ from main.views import show_main, login_user, logout_user, register, checkout, r
 
 
 
+from .views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, product_detail,edit_profile, profile_view, create_review_by_ajax, get_product_data_for_checkout, add_product_ajax, add_discussion_or_reply, show_user_discussion, show_forum_json, delete_discussion, show_user_profile_json, show_user_discussion_json, create_report_by_ajax
 
 app_name = "main"
 
@@ -34,6 +35,7 @@ urlpatterns = [
     path('profile/', profile_view, name='profile'),
     path('edit_profile/', edit_profile, name='edit_profile'),
     path('report/<uuid:product_id>/', create_report, name='create_report'),
+    path('create-report-by-ajax/<uuid:product_id>', create_report_by_ajax, name='create-report-by-ajax'),
     path('create-review-by-ajax/<uuid:id>', create_review_by_ajax, name="create-review-by-ajax"),
     path('create-review-by-ajax/<uuid:id>', create_review_by_ajax, name="create_review_by_ajax"),
     path('user_discussion/<int:user_id>/', show_user_discussion, name="show_user_discussion"),

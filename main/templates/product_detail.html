@@ -46,6 +46,12 @@
                 <a href="{% url 'main:create_report' data.pk %}">
                     <button style="background-color: blue; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
                 </a>
+                <button data-modal-target="crudModalCheckout" data-modal-toggle="crudModalCheckout" style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;" onclick="showModalCheckout('{{ data.pk }}');">Checkout</button>
+
+                {% if data.has_complained %}
+                    <span style="color: red; font-weight: bold; font-size: 1.5em; padding-left: 8px;">C</span>
+                {% endif %}
+                
             </div>
             {% include 'product_discussion.html' %}
 

@@ -88,12 +88,11 @@ class TransactionForm(ModelForm):
             return strip_tags(phone_number)
 
 
-
-
 class ReportForm(ModelForm):
     class Meta:
         model = Report
         fields = ["message"]
+
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
