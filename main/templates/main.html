@@ -28,11 +28,14 @@
 
     <!-- Filter Button -->
     <div class="m-2">
-      <button id="toggleFilter" class="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 hover:bg-blue-600 transition duration-200">
-          Tampilkan Filter
+      <button id="toggleFilter" class="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full border border-gray-300 shadow-sm hover:bg-gray-50 transition duration-200">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+          </svg>
+          Filter
       </button>
     </div>
-
+    
     <!-- Filter Form -->
     <div id="filterForm" class="hidden mb-6">
       <form method="get" class="flex flex-col p-6 bg-white shadow-lg rounded-lg transition-transform">
@@ -166,8 +169,8 @@ let numPage = 0;
 
 
 const productEntries = JSON.parse(`{{ data|safe }}`);
-const hasPrevious = `{{ has_previous|safe }}`;
-const hasNext = `{{ has_next|safe }}`;
+const hasPrevious = `{{ has_previous|yesno:"true,false" }}` === "true";
+const hasNext = `{{ has_next|yesno:"true,false" }}` === "true";
 currentPage = `{{ current_page|safe }}`;
 const numPages = `{{ num_pages|safe }}`;
 const pageStatus = {
@@ -201,31 +204,31 @@ function refreshCard(page = 1) {
 
 function setupPaginationControls(pageStatus) {
     const paginationControls = document.getElementById("paginationControls");
-    paginationControls.innerHTML = "";  // Clear any existing controls
+    paginationControls.innerHTML = "";  // Hapus kontrol yang ada
 
-    // Add "Previous" button
-    if (pageStatus.pagehasPrevious) {
+    // Tambahkan tombol "Previous"
+    if (pageStatus.hasPrevious) {
         const prevButton = document.createElement("button");
         prevButton.textContent = "Previous";
-        prevButton.onclick = () => goToPage(pageStatus.currentPage - 1);
+        prevButton.onclick = () => goToPage(parseInt(pageStatus.currentPage) - 1);
         prevButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
         paginationControls.appendChild(prevButton);
     }
 
-    // Add page buttons
-    for (let i = 1; i <= numPages; i++) {
+    // Tambahkan tombol halaman
+    for (let i = 1; i <= pageStatus.numPages; i++) {
         const pageButton = document.createElement("button");
         pageButton.textContent = i;
         pageButton.onclick = () => goToPage(i);
-        pageButton.className = `mx-1 px-2.5 py-1 border-none cursor-pointer ${i === pageStatus.currentPage ? 'bg-blue-500 text-white' : 'bg-gray-200'}`;
+        pageButton.className = `mx-1 px-2.5 py-1 border-none cursor-pointer ${i === parseInt(pageStatus.currentPage) ? 'bg-blue-500 text-white' : 'bg-gray-200'}`;
         paginationControls.appendChild(pageButton);
     }
 
-    // Add "Next" button
-    if (pageStatus.hasNext) {
+    // Tambahkan tombol "Next" jika ada halaman berikutnya
+    if (pageStatus.hasNext && pageStatus.currentPage < pageStatus.numPages) {
         const nextButton = document.createElement("button");
         nextButton.textContent = "Next";
-        nextButton.onclick = () => goToPage(pageStatus.currentPage + 1);
+        nextButton.onclick = () => goToPage(parseInt(pageStatus.currentPage) + 1);
         nextButton.className = "mx-1 px-2.5 py-1 border-none bg-gray-200 cursor-pointer";
         paginationControls.appendChild(nextButton);
     }
