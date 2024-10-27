@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'navbar.html' %}
+
+<div class="overflow-x-hidden px-4 md:px-8 pb-8 pt-24 relative flex flex-col md:flex-row gap-8">
+    <div class="border-double border-2 border-sky-500 md:w-1/3 p-6" style="height: fit-content;">
+        <h1 style="margin-bottom: 30px;">WISHLIST</h1>
+
+        <!-- Category Filter Form -->
+         <h2>Filter</h2>
+        <form id="filterForm" method="get" class="flex items-center space-x-4 mb-6 mt-4">
+            <div class="w-full">
+                <label for="kategori" class="block text-sm font-medium text-gray-700">Kategori</label>
+                <select id="kategori" name="kategori" class="block w-full p-2 border border-gray-300 rounded-md" onchange="this.form.submit()">
+                <option value="">All</option>
+                {% for kategori in category_list %}
+                    <option value="{{ kategori }}" {% if request.GET.kategori == kategori %}selected{% endif %}>
+                        {{ kategori }}
+                    </option>
+                {% endfor %}
+            </select>
+            </div>
+        </form>
+
+    </div>
+    <div class="md:w-2/3" style="height: auto;">
+        <div id="wishlists"></div>
+    </div>
+</div>
+
+<script>
+    async function getProducts() {
+        const kategori = document.getElementById('kategori').value;
+        const url = `{% url 'main:filter_wishlist' %}?kategori=${encodeURIComponent(kategori)}`;
+
+        return fetch(url)
+        .then((res) => res.json())
+    }
+
+    async function refreshProducts() {
+        document.getElementById("wishlists").innerHTML = "";
+        document.getElementById("wishlists").className = "";
+        const products = await getProducts();
+        let htmlString = "";
+        let classNameString = "";
+
+        if (products.length === 0) {
+            classNameString = "flex flex-col items-center justify-center min-h-[24rem] p-6 ";
+            htmlString = `
+                <div class="flex flex-col items-center justify-center min-h-[24rem] p-6">
+                    <p class="text-center text-gray-600 mt-4">You have no wishlist.</p>
+                </div>
+            `;
+        }
+        else {
+            classNameString = "columns-1 sm:columns-2 lg:columns-4 gap-6 space-y-6 w-full"
+            products.forEach((item) => {
+                htmlString += `
+                    <div class="relative break-inside-avoid">
+                        <div class="relative rounded-lg mb-6 break-inside-avoid flex flex-col">
+                            <a href="/product-detail/${item.pk}">
+                                <div style="padding: 20px; margin-top: 10px;">
+                                    <div class="w-full h-96 border border-solid border-gray-300 rounded-lg p-4 m-2.5 bg-blue-100 flex flex-col">
+                                        <div class="h-40 overflow-hidden rounded-lg mb-4">
+                                            <img src="${item.fields.gambar.url}" alt="${item.fields.name}" class="w-full h-full object-cover">
+                                        </div>
+                                        <div class="flex flex-col flex-grow"> <!-- Added flex-grow -->
+                                            <div class="bg-blue-200 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full w-fit mb-2">
+                                                ${item.fields.kategori}
+                                            </div>
+                                            <h3 class="font-bold text-lg mb-2 line-clamp-2">${item.fields.name}</h3>
+                                            <p class="text-sm font-bold font-sans">Rp${item.fields.harga}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="absolute top-3 -right-4 flex space-x-1">
+                            <a href="/checkout/${item.pk}" style="background-color: #28a745;" class="text-white rounded-full p-2 shadow-lg flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 2L4 4H1v2h3l3 12h11v-2H7.5L8 12h11l2-9H6z" />
+                                    <circle cx="10" cy="21" r="2" />
+                                    <circle cx="16" cy="21" r="2" />
+                                </svg>
+                            </a>
+                            <a href="/delete_wishlist/${item.pk}" class="bg-red-500 text-white rounded-full p-2 shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        document.getElementById("wishlists").className = classNameString;
+        document.getElementById("wishlists").innerHTML = htmlString;
+    }
+    refreshProducts();
+    
+</script>
+{% endblock content %}

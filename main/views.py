@@ -12,13 +12,13 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
-from main.models import Product, UserProfile, Review, Transaction
-from main.forms import ReviewForm
-
-from main.models import Product, UserProfile, Review
+from main.models import Product, UserProfile, Review, Wishlist, Transaction
 from main.forms import ReviewForm, UserProfileForm
 
 from main.models import Product, UserProfile
+from django.core.paginator import Paginator
+from django.db.models import Q
+from main.models import Product, UserProfile, Forum
 from django.core.exceptions import PermissionDenied
 from functools import wraps
 from django.contrib.auth.models import User
@@ -29,6 +29,19 @@ from main.forms import ProductForm,TransactionForm
 from .forms import ReportForm
 from .models import Report, Product
 import os
+from django.core.paginator import Paginator
+from django.db.models import Q
+from main.models import Product, UserProfile, Forum
+from django.core.exceptions import PermissionDenied
+from functools import wraps
+from django.contrib.auth.models import User
+from main.forms import ProductForm, ForumForm
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_http_methods
+from urllib.parse import unquote
+
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 
 
@@ -65,6 +78,7 @@ def show_main(request):
     }
     
     return render(request, "main.html", context)
+
 
 def login_user(request):
   if request.method == 'POST':
@@ -119,7 +133,7 @@ def admin_required(view_func):  # Decorator untuk autentikasi edit & remove prod
     raise PermissionDenied
   return _wrapped_view
 
-@login_required
+@login_required(login_url='/login')
 def make_admin(request, user_id):  
   if request.user.profile.role == 'CUSTOMER':
     user_profile = UserProfile.objects.get(user_id=user_id)
@@ -130,7 +144,7 @@ def make_admin(request, user_id):
 
 
   
-@login_required
+@login_required(login_url='/login')
 def request_admin(request):  # Form untuk mengubah user menjadi admin
 
   if request.user.profile.role == 'ADMIN':
@@ -157,7 +171,7 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
   return render(request, 'request_admin.html', {})
      
 
-@login_required
+@login_required(login_url='/login')
 def create_review(request, id):
   form = ReviewForm(request.POST or None)
   product = Product.objects.get(pk=id)
@@ -203,7 +217,6 @@ def all_review(request, id):
 @login_required(login_url='/login')
 def checkout(request, id):
   product = Product.objects.get(pk=id)
-  total_harga = product.harga + 10000
 
   if request.method == 'POST':
       form = TransactionForm(request.POST)
@@ -221,7 +234,6 @@ def checkout(request, id):
 
   context = {
       'product': product,
-      'total_harga': total_harga,
       'form': form
   }
   return render(request, "checkout.html", context)
@@ -307,6 +319,10 @@ def checkout_by_ajax(request, id):
     product = Product.objects.get(pk=id)
     user = request.user
     
+    try:
+        validate_email(email)  # Ini akan memicu ValidationError jika email tidak valid
+    except ValidationError:
+        return JsonResponse({'error': 'Email tidak valid'}, status=400)
 
     new_transaction = Transaction(
         name=name, email=email,
@@ -331,12 +347,12 @@ def product_detail(request, id):
     product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
     return render(request, 'product_detail.html', {'data': product})
 
-@login_required
+@login_required(login_url='/login')
 def profile_view(request):
     profile = get_object_or_404(UserProfile, user=request.user)
     return render(request, 'profile.html', {'profile': profile})
 
-@login_required
+@login_required(login_url='/login')
 def edit_profile(request):
     profile = request.user.profile
 
@@ -395,3 +411,181 @@ def create_report(request, product_id):
     }
     return render(request, 'create_report.html', context)
    
+   
+
+@require_POST
+@login_required
+def add_discussion_or_reply(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    parent_id = request.POST.get("parent_id")
+    parent_comment = None
+
+    if parent_id and parent_id != 'undefined':
+        try:
+            parent_comment = Forum.objects.get(id=parent_id)
+        except Forum.DoesNotExist:
+            return HttpResponse("Parent comment does not exist", status=404)
+
+    form = ForumForm(request.POST, user=request.user, product=product, parent=parent_comment)
+
+    if form.is_valid():
+        form.save()
+        return HttpResponse(b"CREATED", status=201)
+    else:
+        return HttpResponse("Form data invalid", status=400)
+
+def show_user_profile_json(request, userId):
+   user_profile = UserProfile.objects.filter(user=userId)
+   return HttpResponse(serializers.serialize("json", user_profile), content_type="application/json")
+
+def show_forum_json(request, product_id):
+
+    discussions = Forum.objects.filter(product_id=product_id).order_by('-created_at')
+    top_level_discussions = discussions.filter(parent=None)
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(top_level_discussions, 10) 
+    page_obj = paginator.get_page(page_number)
+    
+    top_level_ids = [discussion.id for discussion in page_obj]
+    
+    filtered_discussions = discussions.filter(
+        Q(id__in=top_level_ids) | Q(parent_id__in=top_level_ids)
+    )
+
+    user_requester = None
+    if request.user.is_authenticated:
+        user_requester = serializers.serialize("json", [request.user])
+    else:
+        user_requester = "AnonymousUser"
+
+    top_level_data = serializers.serialize("json", page_obj)
+    filtered_discussions_data = serializers.serialize("json", filtered_discussions)
+    
+    return JsonResponse({
+        'user_requester': user_requester,
+        'top_level_discussions': top_level_data, 
+        'discussions': filtered_discussions_data, 
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'num_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+    })
+
+
+def show_user_discussion(request, user_id):
+    user = request.user
+    user_requested = get_object_or_404(User, pk=user_id)
+
+    context = {
+        'user_requested': user_requested,
+        'user': user,
+    }
+    
+    return render(request, 'user_discussion.html', context)
+
+def show_user_discussion_json(request, user_id):
+    user_requested = get_object_or_404(User, pk=user_id)
+    discussions = Forum.objects.filter(user=user_requested).order_by('-created_at')
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(discussions, 10)
+    page_obj = paginator.get_page(page_number)
+
+    paged_discussion_id = [discussion.id for discussion in page_obj]
+
+    filtered_discussions = discussions.filter(
+        Q(id__in=paged_discussion_id) | Q(parent_id__in=paged_discussion_id)
+    ).order_by('-created_at')
+
+    discussion_data = []
+    for discussion in filtered_discussions:
+        product = Product.objects.get(id=discussion.product_id)
+
+        parent_message = discussion.parent.message if discussion.parent else None
+        parent_commenter = discussion.parent.commenter_name if discussion.parent else None
+
+        raw_url = product.gambar.url if product.gambar else None
+        product_gambar_url = f"{unquote(raw_url).lstrip('/')}" if raw_url else None
+
+        discussion_data.append({
+            "pk": discussion.pk,
+            "fields": {
+                "user_requested" : user_id,
+                "product_id": discussion.product_id,
+                "product_name": product.name,
+                "product_gambar": product_gambar_url,
+                "commenter_name": discussion.commenter_name,
+                "message": discussion.message,
+                "created_at": discussion.created_at.isoformat(),
+                "parent": discussion.parent_id,
+                "parent_message": parent_message,
+                "parent_commenter": parent_commenter
+            }
+        })
+
+    return JsonResponse({
+        'discussions': discussion_data,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'num_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+    })
+
+@require_http_methods(["DELETE"])
+def delete_discussion(request, discussion_id):
+    discussion = get_object_or_404(Forum, id=discussion_id)
+    if request.user != discussion.user:
+        return HttpResponseForbidden("You are not allowed to delete this discussion.")
+    
+    discussion.delete()
+    return JsonResponse({"message": "Discussion deleted successfully."})
+       
+   
+@login_required
+def show_wishlist(request):
+    wishlists = Wishlist.objects.filter(user=request.user)
+
+    context = {
+       "products": wishlists,
+       "category_list": ['Aksesoris','Boots','Camera','Fin','Fins','Glove','Gloves', 'Hood','Jacket','Mask','Others','Pants','Regulator','Snorkel','Socks','Wetsuit']
+    }
+    
+    return render(request, "wishlist.html", context)
+
+
+@csrf_exempt
+def filter_wishlist(request):
+    wishlists = Wishlist.objects.filter(user=request.user)
+
+    #Filtering by category
+    kategori = request.GET.get('kategori', '')
+    if kategori:
+      wishlists = wishlists.filter(product__kategori=kategori)
+
+    product_ids = wishlists.values_list('product', flat=True)
+    products = Product.objects.filter(id__in=product_ids)
+
+    data = products
+    print(data)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+
+def delete_wishlist(request, id):
+    product = Product.objects.get(pk=id)
+    user = request.user
+    wishlist = Wishlist.objects.get(product=product, user=user)
+    wishlist.delete()
+    return HttpResponseRedirect(reverse('main:show_wishlist'))
+
+@login_required(login_url='/login')
+def add_wishlist(request, id):
+    product = Product.objects.get(pk=id)
+    user = request.user
+    try:
+      wishlist = Wishlist.objects.get(product=product, user=user)
+    except Wishlist.DoesNotExist:
+      wishlist = Wishlist(product=product, user=user)
+      wishlist.save()
+      print(f'Created new wishlist item for product ID: {wishlist.product.id}')
+    else:
+      print(f'Found existing wishlist item for product ID: {wishlist.product.id}')
+    return HttpResponseRedirect(reverse('main:product_detail', args=[id]))
