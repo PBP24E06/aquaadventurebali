@@ -25,6 +25,9 @@ from django.contrib.auth.models import User
 from main.forms import TransactionForm
 from main.forms import ProductForm
 from django.utils.html import strip_tags
+from main.forms import ProductForm,CheckoutForm
+from .forms import ReportForm
+from .models import Report, Product
 
 
 
@@ -83,6 +86,7 @@ def register(request):
   form = UserCreationForm()
 
   if request.method == "POST":
+    print("ok")
     form = UserCreationForm(request.POST)
 
     if form.is_valid():
@@ -321,4 +325,25 @@ def edit_profile(request):
     return render(request, 'edit_profile.html', {'form': form})
 
 
+@login_required
+def create_report(request, product_id):
+    product = Product.objects.get(pk=product_id)
+    
+    if request.method == 'POST':
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.user = request.user  # Link the report to the logged-in user
+            report.product = product  # Link the report to the product
+            report.save()
+            messages.success(request, 'Your complaint has been submitted successfully.')
+            return redirect('main:show_main')
+    else:
+        form = ReportForm()
+
+    context = {
+        'form': form,
+        'product': product
+    }
+    return render(request, 'create_report.html', context)
    

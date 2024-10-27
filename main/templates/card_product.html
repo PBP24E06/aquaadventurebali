@@ -1,15 +1,25 @@
-<a href="{% url 'main:product_detail' data.id %}">
-    <div class="w-48 h-96 border border-solid border-gray-300 rounded-lg p-4 m-2.5 bg-blue-100 flex flex-col">
-        <div class="h-40 overflow-hidden rounded-lg mb-4">
-            <img src="{{ data.gambar }}" alt="{{ data.name }}" class="w-full h-full object-cover">
-        </div>
-        <div class="flex flex-col">
-            <div class="bg-blue-200 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full w-fit mb-2">
-                {{ data.kategori }}
-            </div>
-            <h3 class="font-bold text-lg mb-2 line-clamp-2">{{ data.name }}</h3>
-            <p class="text-sm mt-auto font-bold font-sans">Rp {{ data.formatted_harga}}</p>
-        </div>
+<div style="border: 1px solid #ccc; border-radius: 10px; padding: 15px; margin: 10px; width: 200px; background-color: lightblue;">
+    <img src="{{ data.gambar }}" alt="{{ data.name }}" style="width: 100%; height: auto; border-radius: 10px;">
+    <h3><strong>{{ data.name }}</strong></h3>
+    <p><strong>ID:</strong> {{ data.id }}</p>
+    <p><strong>Kategori:</strong> {{ data.kategori }}</p>
+    <p><strong>Harga:</strong> {{ data.harga }}</p>
+    <p><strong>Toko:</strong> {{ data.toko }}</p>
+    <p><strong>Alamat:</strong> {{ data.alamat }}</p>
+    <p><strong>Kontak:</strong> {{ data.kontak }}</p>
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 70px;">
+
+        <a href="{% url 'main:all_review' data.pk %}">
+            <button style="background-color: blue; color: white;">Ulasan</button>
+        </a>
+
+        <a href="{% url 'main:checkout' data.pk %}">
+            <button style="background-color: blue; color: white;">Checkout</button>
+        </a>
+
+        <a href="{% url 'main:create_report' data.pk %}">
+        <button style="background-color: blue; color: white;">Complain</button>
+        </a>
     </div>
 </a>
 
