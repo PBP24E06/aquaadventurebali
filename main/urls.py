@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.urls import path
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, product_detail,edit_profile, profile_view, create_review_by_ajax, get_product_data_for_checkout, add_product_ajax, show_user_discussion, show_forum_json, delete_discussion, show_user_profile_json, show_user_discussion_json, add_discussion_or_reply
+
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, product_detail,edit_profile, profile_view, create_review_by_ajax, get_product_data_for_checkout, add_product_ajax, show_user_discussion, show_forum_json, delete_discussion, show_user_profile_json, show_user_discussion_json, add_discussion_or_reply, show_wishlist, add_wishlist, delete_wishlist, filter_wishlist
+
+
 
 
 
@@ -33,4 +36,8 @@ urlpatterns = [
     path('delete_discussion/<int:discussion_id>/', delete_discussion, name='delete_discussion'),
     path('user_profile_json/<int:userId>/', show_user_profile_json, name="show_user_profile_json"),
     path('show_user_discussion_json/<int:user_id>/', show_user_discussion_json, name='show_user_discussion_json'),
+    path('wishlist/', show_wishlist, name='show_wishlist'),
+    path('filter_wishlist/', filter_wishlist, name='filter_wishlist'),
+    path('delete_wishlist/<uuid:id>', delete_wishlist, name='delete_wishlist'),
+    path('add_wishlist/<uuid:id>', add_wishlist, name='add_wishlist'),
 ]

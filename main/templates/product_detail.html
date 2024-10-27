@@ -29,12 +29,19 @@
                 <a href="{% url 'main:all_review' data.pk %}" style="text-decoration: none;">
                     <button style="background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Ulasan</button>
                 </a>
+
                 
                 {% if request.user.is_authenticated %}
                     <button data-modal-target="crudModalCheckout" data-modal-toggle="crudModalCheckout" style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;" onclick="showModalCheckout('{{ data.pk }}');">Checkout</button>
                 {% else %}
                     <button style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;" onclick="alert('You must login first to do checkouts.');">Checkout</button>
                 {% endif %}
+
+
+                
+                <a href="{% url 'main:add_wishlist' data.pk %}" style="text-decoration: none;">
+                    <button style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Wishlist</button>
+                </a>
 
                 <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
             </div>
