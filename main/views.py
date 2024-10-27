@@ -228,6 +228,16 @@ def all_review(request, id):
     return render(request, "all_review.html", context)
 
 @login_required(login_url='/login')
+def all_report(request, id):
+    product = get_object_or_404(Product, pk=id)
+    reports = Report.objects.filter(product=product)
+    context = {
+        "product": product,
+        "reports": reports
+    }
+    return render(request, "all_report.html", context)
+
+@login_required(login_url='/login')
 def checkout(request, id):
   product = Product.objects.get(pk=id)
 
