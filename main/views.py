@@ -54,6 +54,7 @@ def show_main(request):
 
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+    nama_produk = request.GET.get('product_name')
 
     for product in products:
         product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
@@ -63,6 +64,9 @@ def show_main(request):
 
     if max_price:
         products = products.filter(harga__lte=max_price)
+
+    if nama_produk:
+       products = products.filter(name__icontains=nama_produk) | products.filter(kategori__icontains=nama_produk)
 
     print(f"kategori: {kategori_filter}, min: {min_price}, max: {max_price}")
     print(f"Size: {products.count()}")

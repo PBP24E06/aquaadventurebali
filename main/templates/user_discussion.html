@@ -82,7 +82,7 @@
                             <div class="flex gap-4 items-start">
                                 <div>
                                     <strong>${item.fields.product_name}</strong><br>
-                                    <span class="text-sm text-gray-500">${item.fields.created_at}</span>
+                                    <span class="text-sm text-gray-500">${new Date(item.fields.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long' })}</span>
                                 </div>
                             </div>
                             <div class="ml-auto">
