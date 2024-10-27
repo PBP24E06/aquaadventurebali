@@ -106,11 +106,13 @@ class TestProduct(TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertTemplateUsed(response, 'edit_product.html')
 
-     # def test_view_product_detail(self):
-    #     response = self.client.get('/product-detail/fa841a2a-528d-47c6-a0f9-0155eed06d03')
+    def test_view_product_detail(self):
+        url = reverse('main:product_detail', args=[self.product.id])
 
-    #     self.assertEquals(response.status_code, 200)
-    #     self.assertTemplateUsed(response, 'product_detail.html')
+        response = self.client.get(url)
+
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, 'product_detail.html')
 
 
 class TestCheckout(TestCase):
@@ -176,7 +178,8 @@ class TestCheckout(TestCase):
         
         
         self.assertEqual(response.status_code, 400)
-        
+
+    
 
     
 
@@ -262,22 +265,65 @@ class TestWishlist(TestCase):
         
         self.assertTemplateNotUsed(response, 'wishlist.html')
 
-    # def test_add_wishlist_without_login(self):
-    #     self.client.logout()
-    #     url = reverse('main:add_wishlist', args=[self.product.id])
+    def test_add_wishlist_without_login(self):
+        self.client.logout()
+        url = reverse('main:add_wishlist', args=[self.product.id])
 
-    #     login_url = reverse('main:login_user')  # Menggunakan reverse untuk mendapatkan URL login
+        login_url = reverse('main:login_user')  # Menggunakan reverse untuk mendapatkan URL login
 
-    #     response = self.client.post(url)
+        response = self.client.post(url)
 
-    #     # Memeriksa apakah status kode adalah 302 (pengalihan)
-    #     self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
+
         
-    #     # Memeriksa apakah pengalihan menuju halaman login dengan parameter next
-    #     self.assertRedirects(response, f'{login_url}?next={url}')
-    #     self.assertEqual(Wishlist.objects.count(), 0)
+        response = self.client.get(response.url)
+
+        
+        self.assertEqual(response.status_code, 301)
+        
+        self.assertEqual(Wishlist.objects.count(), 0)
         
     
+class TestComplain(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.userProfile = UserProfile.objects.create(user=self.user)
+        self.client.login(username='testuser', password='testpassword')
+        self.product = Product.objects.create(
+            name='Item1', kategori='Kategori1', harga=10000, 
+            toko='Toko Bagus', alamat='Jalan jalan', kontak='12345678', 
+            gambar='static/image/86a6be95-eaa0-458c-98f0-785d5abd3772-550x550.jpg'
+        )
+
+    def test_create_report_successfull(self):
+        url = reverse('main:create_report', args=[self.product.id])
+
+        data = {
+            'subject': 'lapor woy',
+            'message': 'gimana sih'
+        }
+        
+        response = self.client.post(url, data)
+        
+        
+        self.assertEqual(response.status_code, 302)
+
+    def test_create_report_without_login(self):
+        self.client.logout()
+
+        url = reverse('main:create_report', args=[self.product.id])
+
+        data = {
+            'subject': 'lapor woy',
+            'message': 'gimana sih'
+        }
+        
+        response = self.client.post(url, data)
+        
+        
+        self.assertEqual(response.status_code, 302)
+
     
 
 class DiscussionTests(TestCase):
