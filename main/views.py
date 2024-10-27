@@ -252,9 +252,11 @@ def view_transaction_history(request):
   transaction_list = Transaction.objects.filter(user=request.user)
 
   reviewed_products = set(Review.objects.filter(user=request.user).values_list('product_id', flat=True))
+  complained_products = set(Report.objects.filter(user=request.user).values_list('product_id', flat=True))
 
   for transaction in transaction_list:
     transaction.has_reviewed = transaction.product.id in reviewed_products
+    transaction.has_complained = transaction.product.id in complained_products
     transaction.product.formatted_harga = f"{format(transaction.product.harga, ',').replace(',', '.')}"
 
   context = {
@@ -354,7 +356,11 @@ def get_product_data_for_checkout(request, id):
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
-    return render(request, 'product_detail.html', {'data': product})
+    product_has_complain = False
+    cek_complain = Report.objects.filter(product=product)
+    if(cek_complain.count() > 0):
+       product_has_complain = True
+    return render(request, 'product_detail.html', {'data': product, 'product_has_complain': product_has_complain})
 
 @login_required(login_url='/login')
 def profile_view(request):
@@ -600,3 +606,37 @@ def add_wishlist(request, id):
     else:
       print(f'Found existing wishlist item for product ID: {wishlist.product.id}')
     return HttpResponseRedirect(reverse('main:product_detail', args=[id]))
+
+
+@login_required
+@csrf_exempt
+def create_report_by_ajax(request, product_id):
+    print("masuk1")
+    product = Product.objects.get(pk=product_id)
+    print("masuk2")
+
+    if request.method == 'POST':
+        print("masuk3")
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            print("masuk4")
+            report = form.save(commit=False)
+            report.user = request.user
+            report.product = product
+            report.save()
+            return HttpResponse("Complaint submitted successfully!", status=201)
+        else:
+            print("masuk5")
+            return HttpResponse("Failed to submit complaint. Please check the form for errors.", status=400)
+    print("masuk6")
+    return HttpResponse("Invalid request method.", status=405)
+
+@login_required(login_url='/login')
+def all_report(request, id):
+    product = get_object_or_404(Product, pk=id)
+    reports = Report.objects.filter(product=product)
+    context = {
+        "product": product,
+        "reports": reports
+    }
+    return render(request, "all_report.html", context)
