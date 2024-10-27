@@ -86,5 +86,16 @@ class Transaction(models.Model):
 
 class Report(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name="report", on_delete=models.CASCADE)  # Relasi balik ke user
+    user = models.ForeignKey(User, related_name="reports", on_delete=models.CASCADE)  # Relasi balik ke user
+    subject = models.CharField(max_length=255)  # Subject of the complaint
     message = models.TextField()
+    status_choices = (
+        ('Pending', 'Pending'),
+        ('Resolved', 'Resolved'),
+    )
+    status = models.CharField(max_length=10, choices=status_choices, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)  # Automatically adds timestamp
+
+    def __str__(self):
+        return f"Complaint from {self.user} about {self.product.name}"
+

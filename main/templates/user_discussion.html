@@ -89,7 +89,9 @@
                                 <a class="discussed-product text-green-500 font-bold cursor-pointer" product-id=${k}-${item.fields.product_id}>Lihat Produk</a>
                             </div>
                         </div>
-                        <img src="${item.fields.product_gambar}" alt="${item.fields.product_name}" class="w-16 h-auto max-w-full rounded-lg mt-4">
+                        <div class="max-w-xs overflow-hidden rounded-lg">
+                            <img src="${item.fields.product_gambar}" alt="${item.fields.product_name}" class="w-full h-auto object-cover">
+                        </div>
 
                         <div class="mt-4 break-words">
                             <p><strong>Comment: </strong>${item.fields.message}</p>

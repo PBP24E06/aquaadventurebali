@@ -12,11 +12,10 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
-from main.models import Product, UserProfile, Review, Transaction
-from main.forms import ReviewForm
-
-from main.models import Product, UserProfile, Review
+from main.models import Product, UserProfile, Review, Wishlist, Transaction
 from main.forms import ReviewForm, UserProfileForm
+
+from main.models import Product, UserProfile
 from django.core.paginator import Paginator
 from django.db.models import Q
 from main.models import Product, UserProfile, Forum
@@ -26,11 +25,23 @@ from django.contrib.auth.models import User
 from main.forms import TransactionForm
 from main.forms import ProductForm
 from django.utils.html import strip_tags
+from main.forms import ProductForm,TransactionForm
+from .forms import ReportForm
+from .models import Report, Product
 import os
+from django.core.paginator import Paginator
+from django.db.models import Q
+from main.models import Product, UserProfile, Forum
+from django.core.exceptions import PermissionDenied
+from functools import wraps
+from django.contrib.auth.models import User
 from main.forms import ProductForm, ForumForm
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from urllib.parse import unquote
+
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 
 
@@ -102,6 +113,7 @@ def register(request):
   form = UserCreationForm()
 
   if request.method == "POST":
+    print("ok")
     form = UserCreationForm(request.POST)
 
     if form.is_valid():
@@ -130,7 +142,7 @@ def admin_required(view_func):  # Decorator untuk autentikasi edit & remove prod
     raise PermissionDenied
   return _wrapped_view
 
-@login_required
+@login_required(login_url='/login')
 def make_admin(request, user_id):  
   if request.user.profile.role == 'CUSTOMER':
     user_profile = UserProfile.objects.get(user_id=user_id)
@@ -141,7 +153,7 @@ def make_admin(request, user_id):
 
 
   
-@login_required
+@login_required(login_url='/login')
 def request_admin(request):  # Form untuk mengubah user menjadi admin
 
   if request.user.profile.role == 'ADMIN':
@@ -168,7 +180,7 @@ def request_admin(request):  # Form untuk mengubah user menjadi admin
   return render(request, 'request_admin.html', {})
      
 
-@login_required
+@login_required(login_url='/login')
 def create_review(request, id):
   form = ReviewForm(request.POST or None)
   product = Product.objects.get(pk=id)
@@ -214,7 +226,6 @@ def all_review(request, id):
 @login_required(login_url='/login')
 def checkout(request, id):
   product = Product.objects.get(pk=id)
-  total_harga = product.harga + 10000
 
   if request.method == 'POST':
       form = TransactionForm(request.POST)
@@ -232,7 +243,6 @@ def checkout(request, id):
 
   context = {
       'product': product,
-      'total_harga': total_harga,
       'form': form
   }
   return render(request, "checkout.html", context)
@@ -318,6 +328,10 @@ def checkout_by_ajax(request, id):
     product = Product.objects.get(pk=id)
     user = request.user
     
+    try:
+        validate_email(email)  # Ini akan memicu ValidationError jika email tidak valid
+    except ValidationError:
+        return JsonResponse({'error': 'Email tidak valid'}, status=400)
 
     new_transaction = Transaction(
         name=name, email=email,
@@ -342,13 +356,12 @@ def product_detail(request, id):
     product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
     return render(request, 'product_detail.html', {'data': product})
 
-
-@login_required
+@login_required(login_url='/login')
 def profile_view(request):
     profile = get_object_or_404(UserProfile, user=request.user)
     return render(request, 'profile.html', {'profile': profile})
 
-@login_required
+@login_required(login_url='/login')
 def edit_profile(request):
     profile = request.user.profile
 
@@ -385,6 +398,28 @@ def create_review_by_ajax(request, id):
     
     return HttpResponse(b"CREATED", status=201)
 
+@login_required
+def create_report(request, product_id):
+    product = Product.objects.get(pk=product_id)
+    
+    if request.method == 'POST':
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.user = request.user  # Link the report to the logged-in user
+            report.product = product  # Link the report to the product
+            report.save()
+            messages.success(request, 'Your complaint has been submitted successfully.')
+            return redirect('main:show_main')
+    else:
+        form = ReportForm()
+
+    context = {
+        'form': form,
+        'product': product
+    }
+    return render(request, 'create_report.html', context)
+   
    
 
 @require_POST
@@ -480,7 +515,7 @@ def show_user_discussion_json(request, user_id):
         parent_commenter = discussion.parent.commenter_name if discussion.parent else None
 
         raw_url = product.gambar.url if product.gambar else None
-        product_gambar_url = f"{unquote(raw_url).lstrip('/')}" if raw_url else None
+        product_gambar_url = product.gambar.url
 
         discussion_data.append({
             "pk": discussion.pk,
@@ -516,3 +551,52 @@ def delete_discussion(request, discussion_id):
     return JsonResponse({"message": "Discussion deleted successfully."})
        
    
+@login_required
+def show_wishlist(request):
+    wishlists = Wishlist.objects.filter(user=request.user)
+
+    context = {
+       "products": wishlists,
+       "category_list": ['Aksesoris','Boots','Camera','Fin','Fins','Glove','Gloves', 'Hood','Jacket','Mask','Others','Pants','Regulator','Snorkel','Socks','Wetsuit']
+    }
+    
+    return render(request, "wishlist.html", context)
+
+
+@csrf_exempt
+def filter_wishlist(request):
+    wishlists = Wishlist.objects.filter(user=request.user)
+
+    #Filtering by category
+    kategori = request.GET.get('kategori', '')
+    if kategori:
+      wishlists = wishlists.filter(product__kategori=kategori)
+
+    product_ids = wishlists.values_list('product', flat=True)
+    products = Product.objects.filter(id__in=product_ids)
+
+    data = products
+    print(data)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+
+def delete_wishlist(request, id):
+    product = Product.objects.get(pk=id)
+    user = request.user
+    wishlist = Wishlist.objects.get(product=product, user=user)
+    wishlist.delete()
+    return HttpResponseRedirect(reverse('main:show_wishlist'))
+
+@login_required(login_url='/login')
+def add_wishlist(request, id):
+    product = Product.objects.get(pk=id)
+    user = request.user
+    try:
+      wishlist = Wishlist.objects.get(product=product, user=user)
+    except Wishlist.DoesNotExist:
+      wishlist = Wishlist(product=product, user=user)
+      wishlist.save()
+      print(f'Created new wishlist item for product ID: {wishlist.product.id}')
+    else:
+      print(f'Found existing wishlist item for product ID: {wishlist.product.id}')
+    return HttpResponseRedirect(reverse('main:product_detail', args=[id]))

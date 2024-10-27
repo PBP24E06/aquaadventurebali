@@ -29,10 +29,23 @@
                 <a href="{% url 'main:all_review' data.pk %}" style="text-decoration: none;">
                     <button style="background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Ulasan</button>
                 </a>
+
                 
-                <button data-modal-target="crudModalCheckout" data-modal-toggle="crudModalCheckout" style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;" onclick="showModalCheckout('{{ data.pk }}');">Checkout</button>
+                {% if request.user.is_authenticated %}
+                    <button data-modal-target="crudModalCheckout" data-modal-toggle="crudModalCheckout" style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;" onclick="showModalCheckout('{{ data.pk }}');">Checkout</button>
+                {% else %}
+                    <button style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;" onclick="alert('You must login first to do checkouts.');">Checkout</button>
+                {% endif %}
+
+
                 
-                <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
+                <a href="{% url 'main:add_wishlist' data.pk %}" style="text-decoration: none;">
+                    <button style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Wishlist</button>
+                </a>
+
+                <a href="{% url 'main:create_report' data.pk %}">
+                    <button style="background-color: blue; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
+                </a>
             </div>
             {% include 'product_discussion.html' %}
 
@@ -45,6 +58,7 @@
                     <a href="{% url 'main:edit_product' data.pk %}" style="text-decoration: none;">
                         <button style="background-color: #ffc107; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Edit</button>
                     </a>
+                    
                 </div>
             {% endif %}
         </div>
@@ -66,8 +80,8 @@
           </div>
           <!-- Modal body -->
           <div class="px-6 py-4 space-y-6 form-style">
-            <div class="grid md:grid-cols-3 gap-8 mt-16">
-                <div class="md:col-span-2 space-y-4">
+            <div class="grid md:grid-cols-3 gap-8 mt-6">
+                <div class="md:col-span-3 space-y-4">
                     <div class="grid grid-cols-3 items-start gap-4">
                         <div class="col-span-3 flex items-start gap-4">
                             <div class="w-28 h-28 max-sm:w-24 max-sm:h-24 shrink-0 bg-gray-100 p-2 rounded-md">
@@ -75,7 +89,7 @@
                             </div>
             
                             <div class="flex flex-col justify-between flex-grow">
-                                <h3 class="text-base font-bold text-gray-800">{{ data.name }}</h3>
+                                <h3 class="text-2xl font-bold text-gray-800">{{ data.name }}</h3>
                                 <h4 class="text-lg max-sm:text-base font-bold text-gray-800">Rp {{ data.formatted_harga }}</h4>
                             </div>
                         </div>
@@ -138,7 +152,7 @@
           <!-- Modal footer -->
           <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 p-6 border-t border-gray-200 rounded-b justify-center md:justify-end">
             <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg" id="cancelButtonCheckout">Cancel</button>
-            <button type="submit" id="submitCheckout" form="checkoutForm" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Checkout</button>
+            <button type="submit" id="submitCheckout" form="checkoutForm" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg alert">Checkout</button>
           </div>
         </div>
       </div>
@@ -203,6 +217,7 @@
         })
         .then(data => {
             hideModalCheckout(); // Close the modal after success
+            alert('Checkout Successful');
         })
         .catch(error => console.error("Checkout error:", error));
 

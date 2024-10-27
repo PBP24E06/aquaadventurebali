@@ -4,6 +4,7 @@ from django.utils.html import strip_tags
 
 
 from main.models import Product, Review, Forum, Wishlist, Transaction, Report, UserProfile
+from main.models import Product, Review, Forum, Wishlist, Report, UserProfile
 from django.utils.html import strip_tags
 from django import forms
 
@@ -98,3 +99,4 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['profile_picture', 'alamat', 'birthdate', 'phone_number', 'bio']
+        
