@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, reverse
 from django.http import HttpResponse, JsonResponse
@@ -215,6 +216,10 @@ def show_json_transaction(request):
     data = Transaction.objects.filter(user=request.user)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+def show_json_product_by_id(request, id):
+    data = Product.objects.filter(pk=id)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
 
 
 @login_required(login_url='/login')
@@ -250,6 +255,29 @@ def checkout(request, id):
       'form': form
   }
   return render(request, "checkout.html", context)
+
+# @login_required(login_url='/login')
+@csrf_exempt
+def checkout_flutter(request, id):
+    product = Product.objects.get(pk=id)
+    print("User:", request.user)
+
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        form = TransactionForm(data)
+        if form.is_valid():
+            # print("Tes")
+            transaction = form.save(commit=False)
+            transaction.product = product
+            transaction.user = request.user
+            transaction.save()
+            
+            return JsonResponse({'status': 'success', 'message': 'Checkout berhasil'}, status=200)
+        else:
+            print("Error form: ", form.errors)
+            return JsonResponse({'status': 'error', 'message': 'Form tidak valid'}, status=400)
+
+    return JsonResponse({'status': 'error', 'message': 'Metode tidak diizinkan'}, status=405)
 
 @login_required(login_url='/login')
 def view_transaction_history(request):
@@ -335,7 +363,7 @@ def checkout_by_ajax(request, id):
     user = request.user
     
     try:
-        validate_email(email)  # Ini akan memicu ValidationError jika email tidak valid
+        validate_email(email) 
     except ValidationError:
         return JsonResponse({'error': 'Email tidak valid'}, status=400)
 

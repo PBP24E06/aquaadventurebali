@@ -178,7 +178,7 @@
                 document.querySelector("#crudModalCheckout .text-gray-800").innerText = data.name;
                 document.querySelector("#crudModalCheckout .text-lg").innerText = "Rp " + data.harga;
 
-                form.dataset.productId = productId; // Set product ID on the form
+                form.dataset.productId = productId;
             });
 
         modalCheckout.classList.remove('hidden'); 
@@ -207,19 +207,19 @@
         const form = document.querySelector('#checkoutForm');
         const productId = form.dataset.productId; // Get the specific product ID from the dataset
 
-        fetch(`/checkout-by-ajax/${productId}/`, {  // Updated URL to include specific product ID
+        fetch(`/checkout-by-ajax/${productId}/`, { 
             method: "POST",
             body: new FormData(form),
         })
         .then(response => {
             if (response.ok) {
-                return response.json(); // Process the response as JSON
+                return response.json(); 
             } else {
                 throw new Error('Transaction failed.');
             }
         })
         .then(data => {
-            hideModalCheckout(); // Close the modal after success
+            hideModalCheckout(); // Close modal
             alert('Checkout Successful');
         })
         .catch(error => console.error("Checkout error:", error));
