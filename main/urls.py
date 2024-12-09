@@ -1,12 +1,12 @@
 from django.contrib import admin
 from django.urls import path
 
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, product_detail,edit_profile, profile_view, create_review_by_ajax, get_product_data_for_checkout, add_product_ajax, show_user_discussion, show_forum_json, delete_discussion, show_user_profile_json, show_user_discussion_json, add_discussion_or_reply, show_wishlist, add_wishlist, delete_wishlist, filter_wishlist
+from main.views import all_report, create_report_by_ajax, show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, product_detail,edit_profile, profile_view, create_review_by_ajax, get_product_data_for_checkout, add_product_ajax, show_user_discussion, show_forum_json, delete_discussion, show_user_profile_json, show_user_discussion_json, add_discussion_or_reply, show_wishlist, add_wishlist, delete_wishlist, filter_wishlist
 
 
 
 
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout, product_detail, profile_view, edit_profile, create_report
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout, product_detail, profile_view, edit_profile, create_report, checkout_flutter, show_json_product_by_id
 
 
 
@@ -46,4 +46,8 @@ urlpatterns = [
     path('filter_wishlist/', filter_wishlist, name='filter_wishlist'),
     path('delete_wishlist/<uuid:id>', delete_wishlist, name='delete_wishlist'),
     path('add_wishlist/<uuid:id>', add_wishlist, name='add_wishlist'),
+    path('create-report-by-ajax/<uuid:product_id>', create_report_by_ajax, name='create-report-by-ajax'),
+    path('reports/<uuid:id>', all_report, name="all_report"),
+    path('checkout-flutter/<uuid:id>', checkout_flutter, name='checkout_flutter'),
+    path('json-product/<uuid:id>', show_json_product_by_id, name='show_json_product_by_id')
 ]

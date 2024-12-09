@@ -84,13 +84,15 @@
                             <div class="flex items-center mb-2.5">
                                 <a class="user-picture cursor-pointer" pic-id="${item.fields.user}"><img src="${userProfileEntries.profile_picture ? userProfileEntries.profile_picture : '{% static "image/profile-picture.png" %}'}" class="w-12 h-12 rounded-full mr-2.5"></a>
                                 <div>
-                                    <p><a class="font-bold cursor-pointer user-username" user-id="${item.fields.user}">${item.fields.commenter_name}</a> - ${item.fields.created_at}</p>
+                                    <p><a class="font-bold cursor-pointer user-username" user-id="${item.fields.user}">${item.fields.commenter_name}</a> - ${new Date(item.fields.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long' })}</p>
                                     <p>${item.fields.message}</p>
                                 </div>
                                 ${isUserOwner ? `
-                                    <button class="three-dots-btn bg-none border-none text-lg cursor-pointer ml-auto">...</button>
-                                    <div class="dropdown-content hidden absolute bg-white min-w-[120px] shadow-lg z-10">
-                                        <button class="delete-discussion-btn" data-id="${item.pk}">Delete</button>
+                                    <div class="relative flex items-center ml-auto">
+                                        <button class="three-dots-btn bg-none border-none text-lg cursor-pointer">...</button>
+                                        <div class="dropdown-content hidden absolute top-0 right-full mr-1 bg-white border border-gray-300 rounded shadow-lg z-10 min-w-[100px]">
+                                            <button class="delete-discussion-btn text-left w-full px-3 py-1 text-gray-900 text-sm whitespace-nowrap" data-id="${item.pk}">Hapus Diskusi</button>
+                                        </div>
                                     </div>
                                 ` : ""}
                             </div>
@@ -182,13 +184,15 @@
                     <div class="flex items-start mt-2.5">
                         <a class="user-picture cursor-pointer" pic-id="${entry.fields.user}"><img src="${userProfileEntries.profile_picture ? userProfileEntries.profile_picture : '{% static "image/profile-picture.png" %}'}" class="w-12 h-12 rounded-full mr-2.5"></a>
                         <div class="flex-1 bg-gray-100 rounded-lg p-2.5">
-                            <p><a class="font-bold cursor-pointer user-username" user-id="${entry.fields.user}">${entry.fields.commenter_name}</a> - ${entry.fields.created_at}</p>
+                            <p><a class="font-bold cursor-pointer user-username" user-id="${entry.fields.user}">${entry.fields.commenter_name}</a> - ${new Date(entry.fields.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long' })}</p>
                             <p>${entry.fields.message}</p>
                         </div>
                         ${isUserOwner ? `
-                            <button class="three-dots-btn bg-none border-none text-lg cursor-pointer">...</button>
-                            <div class="dropdown-content hidden absolute bg-white min-w-[120px] shadow-lg z-10">
-                                <button class="delete-discussion-btn" data-id="${entry.pk}">Delete</button>
+                            <div class="relative flex items-center">
+                                <button class="three-dots-btn bg-none border-none text-lg cursor-pointer">...</button>
+                                <div class="dropdown-content hidden absolute top-0 right-full mr-1 bg-white border border-gray-300 rounded shadow-lg z-10 min-w-[100px]">
+                                    <button class="delete-discussion-btn text-left w-full px-3 py-1 text-gray-900 text-sm whitespace-nowrap" data-id="${entry.pk}">Hapus Diskusi</button>
+                                </div>
                             </div>
                         ` : ""}
                     </div>`;

@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, reverse
 from django.http import HttpResponse, JsonResponse
@@ -92,7 +93,7 @@ def show_main(request):
     
     return render(request, "main.html", context)
 
-
+@csrf_exempt
 def login_user(request):
   if request.method == 'POST':
     form = AuthenticationForm(data=request.POST)
@@ -113,6 +114,7 @@ def login_user(request):
   context = {'form': form}
   return render(request, 'login.html', context)
 
+@csrf_exempt
 def register(request):
   form = UserCreationForm()
 
@@ -215,6 +217,10 @@ def show_json_transaction(request):
     data = Transaction.objects.filter(user=request.user)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
 
+def show_json_product_by_id(request, id):
+    data = Product.objects.filter(pk=id)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
 
 
 @login_required(login_url='/login')
@@ -251,14 +257,39 @@ def checkout(request, id):
   }
   return render(request, "checkout.html", context)
 
+# @login_required(login_url='/login')
+@csrf_exempt
+def checkout_flutter(request, id):
+    product = Product.objects.get(pk=id)
+    print("User:", request.user)
+
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        form = TransactionForm(data)
+        if form.is_valid():
+            # print("Tes")
+            transaction = form.save(commit=False)
+            transaction.product = product
+            transaction.user = request.user
+            transaction.save()
+            
+            return JsonResponse({'status': 'success', 'message': 'Checkout berhasil'}, status=200)
+        else:
+            print("Error form: ", form.errors)
+            return JsonResponse({'status': 'error', 'message': 'Form tidak valid'}, status=400)
+
+    return JsonResponse({'status': 'error', 'message': 'Metode tidak diizinkan'}, status=405)
+
 @login_required(login_url='/login')
 def view_transaction_history(request):
   transaction_list = Transaction.objects.filter(user=request.user)
 
   reviewed_products = set(Review.objects.filter(user=request.user).values_list('product_id', flat=True))
+  complained_products = set(Report.objects.filter(user=request.user).values_list('product_id', flat=True))
 
   for transaction in transaction_list:
     transaction.has_reviewed = transaction.product.id in reviewed_products
+    transaction.has_complained = transaction.product.id in complained_products
     transaction.product.formatted_harga = f"{format(transaction.product.harga, ',').replace(',', '.')}"
 
   context = {
@@ -333,7 +364,7 @@ def checkout_by_ajax(request, id):
     user = request.user
     
     try:
-        validate_email(email)  # Ini akan memicu ValidationError jika email tidak valid
+        validate_email(email) 
     except ValidationError:
         return JsonResponse({'error': 'Email tidak valid'}, status=400)
 
@@ -358,7 +389,11 @@ def get_product_data_for_checkout(request, id):
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     product.formatted_harga = f"{format(product.harga, ',').replace(',', '.')}"
-    return render(request, 'product_detail.html', {'data': product})
+    product_has_complain = False
+    cek_complain = Report.objects.filter(product=product)
+    if(cek_complain.count() > 0):
+       product_has_complain = True
+    return render(request, 'product_detail.html', {'data': product, 'product_has_complain': product_has_complain})
 
 @login_required(login_url='/login')
 def profile_view(request):
@@ -604,3 +639,37 @@ def add_wishlist(request, id):
     else:
       print(f'Found existing wishlist item for product ID: {wishlist.product.id}')
     return HttpResponseRedirect(reverse('main:product_detail', args=[id]))
+
+
+@login_required
+@csrf_exempt
+def create_report_by_ajax(request, product_id):
+    print("masuk1")
+    product = Product.objects.get(pk=product_id)
+    print("masuk2")
+
+    if request.method == 'POST':
+        print("masuk3")
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            print("masuk4")
+            report = form.save(commit=False)
+            report.user = request.user
+            report.product = product
+            report.save()
+            return HttpResponse("Complaint submitted successfully!", status=201)
+        else:
+            print("masuk5")
+            return HttpResponse("Failed to submit complaint. Please check the form for errors.", status=400)
+    print("masuk6")
+    return HttpResponse("Invalid request method.", status=405)
+
+@login_required(login_url='/login')
+def all_report(request, id):
+    product = get_object_or_404(Product, pk=id)
+    reports = Report.objects.filter(product=product)
+    context = {
+        "product": product,
+        "reports": reports
+    }
+    return render(request, "all_report.html", context)

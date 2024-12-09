@@ -43,9 +43,11 @@
                     <button style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Wishlist</button>
                 </a>
 
-                <a href="{% url 'main:create_report' data.pk %}">
-                    <button style="background-color: blue; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;">Complain</button>
-                </a>
+                {% if product_has_complain %}
+                    <a href="{% url 'main:all_report' data.pk %}" style="text-decoration: none;">
+                        <span style="color: red; font-weight: bold; font-size: 1.5em; padding-left: 8px; cursor: pointer;">C</span>
+                    </a>
+                {% endif %}
             </div>
             {% include 'product_discussion.html' %}
 
@@ -167,6 +169,7 @@
         const modalCheckout = document.getElementById('crudModalCheckout');
         const modalContentCheckout = document.getElementById('crudModalContentCheckout');
         const form = document.getElementById('checkoutForm');
+        console.log(productId)
 
         fetch(`/get_product_data_for_checkout/${productId}/`)
             .then(response => response.json())
@@ -175,7 +178,7 @@
                 document.querySelector("#crudModalCheckout .text-gray-800").innerText = data.name;
                 document.querySelector("#crudModalCheckout .text-lg").innerText = "Rp " + data.harga;
 
-                form.dataset.productId = productId; // Set product ID on the form
+                form.dataset.productId = productId;
             });
 
         modalCheckout.classList.remove('hidden'); 
@@ -204,19 +207,19 @@
         const form = document.querySelector('#checkoutForm');
         const productId = form.dataset.productId; // Get the specific product ID from the dataset
 
-        fetch(`/checkout-by-ajax/${productId}/`, {  // Updated URL to include specific product ID
+        fetch(`/checkout-by-ajax/${productId}/`, { 
             method: "POST",
             body: new FormData(form),
         })
         .then(response => {
             if (response.ok) {
-                return response.json(); // Process the response as JSON
+                return response.json(); 
             } else {
                 throw new Error('Transaction failed.');
             }
         })
         .then(data => {
-            hideModalCheckout(); // Close the modal after success
+            hideModalCheckout(); // Close modal
             alert('Checkout Successful');
         })
         .catch(error => console.error("Checkout error:", error));

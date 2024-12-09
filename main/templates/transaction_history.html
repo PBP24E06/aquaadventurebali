@@ -43,6 +43,37 @@
     </div>
 </div>
 
+<div id="crudModalComplaint" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold">Submit a Complaint</h3>
+            <button onclick="closeComplaintModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form id="complaintForm" method="POST" onsubmit="return createComplaint()">
+            <div class="flex flex-col gap-y-4">
+                <div>
+                    <label class="block mb-2">Complaint Details</label>
+                    <textarea name="message" id="complaint_text" class="w-full border rounded-md p-2 h-32" placeholder="Describe your complaint"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-x-4 mt-4">
+                    <button type="button" onclick="closeComplaintModal()" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        Submit Complaint
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <section class="py-24 bg-white">
     <div class="w-full max-w-7xl mx-auto px-4 md:px-8">
@@ -56,9 +87,6 @@
                 </div>
                 <div class="col-span-1 col-start-5 flex justify-center max-lg:hidden">
                     <p class="font-medium text-lg leading-8 text-gray-600">Checkout Time</p>
-                </div>
-                <div class="col-span-1 col-start-6 flex justify-center max-lg:hidden">
-                    <p class="font-medium text-lg leading-8 text-gray-500">Contact Number</p>
                 </div>
             </div>
             {% if not transaction_list %}
@@ -93,8 +121,15 @@
                         <p class="font-semibold text-base leading-8 text-indigo-600 text-center whitespace-normal break-words max-w-xs">{{ transaction.checkout_time }}</p>
                     </div>
                     <div class="col-span-8 sm:col-span-4 lg:col-span-1 flex items-center justify-center ">
-                        <p class="font-semibold text-base leading-8 text-black">{{ transaction.phone_number }}</p>
+                        {% if transaction.has_complained %}
+                            <span class="text-gray-500 text-sm text-center ml-2">Complaint submitted!</span>
+                        {% else %}
+                            <button onclick="openComplaintModal('{{ transaction.product.id }}')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 cursor-pointer ml-2">
+                                Write Complaint
+                            </button>
+                        {% endif %}
                     </div>
+                
                 </div>
                 {% endfor %}
             {% endif %}
@@ -156,6 +191,59 @@
         createReview();
     })
 
+    function openComplaintModal(productId) {
+    document.getElementById('crudModalComplaint').classList.remove('hidden');
+    document.getElementById('crudModalComplaint').classList.add('flex');
+
+    const form = document.getElementById("complaintForm");
+    form.dataset.productId = productId;
+    }
+
+    function closeComplaintModal() {
+        document.getElementById('crudModalComplaint').classList.add('hidden');
+        document.getElementById('crudModalComplaint').classList.remove('flex');
+        document.getElementById('complaintForm').reset();
+    }
+
+    function createComplaint() {
+        const form = document.querySelector("#complaintForm");
+        const productId = form.dataset.productId;
+
+        fetch(`create-report-by-ajax/${productId}`, {
+            method: "POST",
+            body: new FormData(form),
+        })
+        .then(response => {
+            conl
+            if (response.ok) {
+                return response.text();
+            } else {
+                throw new Error('Failed submitting complaint!');
+            }
+        })
+        .then(message => {
+            alert(message);  
+            closeComplaintModal();
+
+            const complaintButton = document.querySelector(`button[onclick="openComplaintModal('${productId}')"]`);
+            if (complaintButton) {
+                complaintButton.textContent = "Complaint submitted!";
+                complaintButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+                complaintButton.classList.add('bg-gray-500', 'cursor-not-allowed');
+                complaintButton.disabled = true;
+            }
+        })
+        .catch(err => console.log("ERROR: ", err));
+
+        form.reset();
+        return false;
+    }
+
+
+    document.querySelector("#complaintForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        createComplaint();
+    });
     function updateRatingWithEmoji(value) {
     document.getElementById('ratingnumber').textContent = value;
     
@@ -184,3 +272,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 {% endblock content %}
+
