@@ -6,7 +6,7 @@ from main.views import all_report, create_report_by_ajax, show_main, login_user,
 
 
 
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout, product_detail, profile_view, edit_profile, create_report, checkout_flutter, show_json_product_by_id
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout, product_detail, profile_view, edit_profile, create_report, checkout_flutter, show_json_product_by_id, get_json_user_transaction_history
 
 
 
@@ -49,5 +49,6 @@ urlpatterns = [
     path('create-report-by-ajax/<uuid:product_id>', create_report_by_ajax, name='create-report-by-ajax'),
     path('reports/<uuid:id>', all_report, name="all_report"),
     path('checkout-flutter/<uuid:id>', checkout_flutter, name='checkout_flutter'),
-    path('json-product/<uuid:id>', show_json_product_by_id, name='show_json_product_by_id')
+    path('json-product/<uuid:id>', show_json_product_by_id, name='show_json_product_by_id'),
+    path('get-user-transaction-id/', get_json_user_transaction_history, name='get_json_user_transaction_history')
 ]

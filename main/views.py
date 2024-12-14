@@ -672,3 +672,8 @@ def all_report(request, id):
         "reports": reports
     }
     return render(request, "all_report.html", context)
+
+def get_json_user_transaction_history(request):
+    user_id = request.user.id
+    data = Transaction.objects.filter(user=user_id)
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
