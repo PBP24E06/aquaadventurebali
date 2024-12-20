@@ -6,7 +6,7 @@ from main.views import all_report, create_report_by_ajax, show_main, login_user,
 
 
 
-from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout, product_detail, profile_view, edit_profile, create_report, checkout_flutter, show_json_product_by_id, show_review_json
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout, product_detail, profile_view, edit_profile, create_report, checkout_flutter, show_json_product_by_id, show_review_json, create_review_flutter
 
 
 
@@ -51,4 +51,5 @@ urlpatterns = [
     path('checkout-flutter/<uuid:id>', checkout_flutter, name='checkout_flutter'),
     path('json-product/<uuid:id>', show_json_product_by_id, name='show_json_product_by_id'),
     path("show-json-review/<uuid:id>", show_review_json, name="show_review_json"),
+    path("create-review-flutter/", create_review_flutter, name="create_review_flutter")
 ]
