@@ -696,3 +696,23 @@ def show_review_json(request, id):
         review_data.append(review_item)
     
     return JsonResponse(review_data, safe=False)
+
+@csrf_exempt
+def create_review_flutter(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        
+        new_review = Review.objects.create(
+            product_id=data['product'],
+            user=request.user,
+            username=request.user.username,
+            rating=data['rating'],
+            review_text=data['review_text'],
+            profile_picture=request.user.userprofile.profile_picture if hasattr(request.user, 'userprofile') else None
+        )
+
+        new_review.save()
+        
+        return JsonResponse({"status": "success"}, status=200)
+    else:
+        return JsonResponse({"status": "error"}, status=401)
