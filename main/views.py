@@ -705,10 +705,8 @@ def create_review_flutter(request):
         new_review = Review.objects.create(
             product_id=data['product'],
             user=request.user,
-            username=request.user.username,
             rating=data['rating'],
             review_text=data['review_text'],
-            profile_picture=request.user.userprofile.profile_picture if hasattr(request.user, 'userprofile') else None
         )
 
         new_review.save()
