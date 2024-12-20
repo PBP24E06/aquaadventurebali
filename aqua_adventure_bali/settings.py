@@ -57,6 +57,7 @@ MIDDLEWARE = [
 
 ]
 
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_SECURE = True
@@ -146,4 +147,3 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://paima-ishak-aquaadventurebali.pbp.cs.ui.ac.id", "https://paima-ishak-aquaadventurebali.pbp.cs.ui.ac.id"]
 
-#
