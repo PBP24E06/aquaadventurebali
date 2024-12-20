@@ -673,3 +673,26 @@ def all_report(request, id):
         "reports": reports
     }
     return render(request, "all_report.html", context)
+
+
+def show_review_json(request, id):
+    product = Product.objects.get(pk=id)
+    reviews = Review.objects.filter(product=product)
+    review_data = []
+    
+    for review in reviews:
+        review_item = {
+            "model": "main.review",
+            "pk": review.pk,
+            "fields": {
+                "product": str(review.product.id),
+                "user": review.user.id,
+                "username": review.user.username,
+                "profile_picture": review.user.profile.profile_picture.url if review.user.profile.profile_picture else None,
+                "rating": review.rating,
+                "review_text": review.review_text,
+            }
+        }
+        review_data.append(review_item)
+    
+    return JsonResponse(review_data, safe=False)
