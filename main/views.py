@@ -758,3 +758,51 @@ def show_profile_json(request):
     
     # Kirim sebagai list dengan satu item
     return JsonResponse([profile_data], safe=False)
+
+@csrf_exempt
+def request_admin_flutter(request):
+    if request.method == 'POST':
+        try:
+            # Get user profile
+            user = request.user
+            user_profile = user.profile
+
+            # Check if already admin
+            if user_profile.role == 'ADMIN':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'You are already an admin!'
+                }, status=400)
+
+            data = json.loads(request.body)
+            admin_password = data.get('admin_password', '')
+
+            # Verify password
+            if admin_password == 'adminpbp': 
+                if user_profile.role == 'CUSTOMER':
+                    user_profile.promote_admin() 
+                    return JsonResponse({
+                        'status': 'success',
+                        'message': 'You have been promoted to admin!'
+                    }, status=200)
+                else:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'You are already an admin!'
+                    }, status=400)
+            else:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Incorrect admin password!'
+                }, status=400)
+
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)
