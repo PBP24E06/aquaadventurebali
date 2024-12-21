@@ -810,3 +810,12 @@ def get_json_user_transaction_history(request):
     user_id = request.user.id
     data = Transaction.objects.filter(user=user_id)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+
+def has_user_reviewed_json(request, id):
+    user = request.user
+    product = product.objects.get(pk=id)
+    has_reviewed = Review.objects.filter(user=user, product=product).exists()
+    return JsonResponse({
+        'has_reviewed': has_reviewed
+    })
