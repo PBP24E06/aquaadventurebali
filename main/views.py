@@ -747,3 +747,14 @@ def create_review_flutter(request, id):
         return JsonResponse({"status": "success"}, status=200)
     else:
         return JsonResponse({"status": "error"}, status=401)
+
+def show_profile_json(request):
+    user_profile = UserProfile.objects.get(user=request.user)
+    
+    serialized_profile = serializers.serialize("json", [user_profile])
+    profile_data = json.loads(serialized_profile)[0]
+    
+    profile_data['fields']['username'] = request.user.username
+    
+    # Kirim sebagai list dengan satu item
+    return JsonResponse([profile_data], safe=False)
