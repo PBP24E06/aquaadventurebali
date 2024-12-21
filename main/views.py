@@ -310,7 +310,7 @@ def add_product_ajax(request):
     toko = request.POST.get("toko")
     alamat = request.POST.get("alamat")
     kontak = request.POST.get("kontak")
-    gambar = request.FILES.get("gambar")
+    gambar = request.FILES.get("gambar") 
 
     new_product = Product(
         name=name,
@@ -674,6 +674,38 @@ def all_report(request, id):
     }
     return render(request, "all_report.html", context)
 
+
+@csrf_exempt
+def create_product_flutter(request):
+    if request.method == 'POST':
+        data = request.POST
+        image = request.FILES.get('gambar')  # Ambil file gambar
+
+        new_product = Product.objects.create(
+            user=request.user,
+            name=data["name"],
+            kategori=data["kategori"],
+            harga=data["harga"],
+            toko=data["toko"],
+            alamat=data["alamat"],
+            kontak=data["kontak"],
+            gambar=image  # Simpan gambar
+        )
+        new_product.save()
+
+        return JsonResponse({"status": "success"}, status=200)
+    return JsonResponse({"status": "error"}, status=401)
+
+@csrf_exempt
+def delete_product_flutter(request, id):
+    if request.method == 'DELETE':
+        try:
+            product = Product.objects.get(id=id)
+            product.delete()
+            return JsonResponse({"status": "success"}, status=200)
+        except Product.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Produk tidak ditemukan"}, status=404)
+    return JsonResponse({"status": "error", "message": "Metode tidak diizinkan"}, status=405)
 
 def show_review_json(request, id):
     product = Product.objects.get(pk=id)
