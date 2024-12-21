@@ -10,6 +10,7 @@ from main.views import all_report, create_report_by_ajax, show_main, login_user,
 
 from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout, product_detail, profile_view, edit_profile, create_report, checkout_flutter, show_json_product_by_id,create_product_flutter,delete_product_flutter, show_profile_json
 from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout, product_detail, profile_view, edit_profile, create_report, checkout_flutter, show_json_product_by_id, show_review_json, create_review_flutter, request_admin_flutter
+from main.views import show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, get_product_data_for_checkout, product_detail, profile_view, edit_profile, create_report, checkout_flutter, show_json_product_by_id, get_json_user_transaction_history
 
 
 
@@ -59,6 +60,7 @@ urlpatterns = [
     path("create-review-flutter/<uuid:id>/", create_review_flutter, name="create_review_flutter"),
     path("show-profile-json/", show_profile_json, name="show_profile_json"),
     path("request-admin-flutter/", request_admin_flutter, name="request_admin_flutter"),
+    path('get-user-transaction-id/', get_json_user_transaction_history, name='get_json_user_transaction_history')
 ]
 
 
