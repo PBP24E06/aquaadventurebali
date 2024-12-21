@@ -146,4 +146,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost","http://127.0.0.1","http://paima-ishak-aquaadventurebali.pbp.cs.ui.ac.id", "https://paima-ishak-aquaadventurebali.pbp.cs.ui.ac.id"]
 
-#
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/image')
