@@ -814,7 +814,7 @@ def get_json_user_transaction_history(request):
 
 def has_user_reviewed_json(request, id):
     user = request.user
-    product = product.objects.get(pk=id)
+    product = Product.objects.get(pk=id)
     has_reviewed = Review.objects.filter(user=user, product=product).exists()
     return JsonResponse({
         'has_reviewed': has_reviewed
