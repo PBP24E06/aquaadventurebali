@@ -3,7 +3,7 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
 
-from main.views import all_report, create_report_by_ajax, has_user_reviewed_json, show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, product_detail,edit_profile, profile_view, create_review_by_ajax, get_product_data_for_checkout, add_product_ajax, show_user_discussion, show_forum_json, delete_discussion, show_user_profile_json, show_user_discussion_json, add_discussion_or_reply, show_wishlist, add_wishlist, delete_wishlist, filter_wishlist
+from main.views import all_report, create_report_by_ajax, has_user_reviewed_json, is_logged_in_json, show_main, login_user, logout_user, register, checkout, request_admin, show_json_product, show_json_transaction, delete_product, edit_product, all_review, request_admin, create_review, view_transaction_history, checkout_by_ajax, product_detail,edit_profile, profile_view, create_review_by_ajax, get_product_data_for_checkout, add_product_ajax, show_user_discussion, show_forum_json, delete_discussion, show_user_profile_json, show_user_discussion_json, add_discussion_or_reply, show_wishlist, add_wishlist, delete_wishlist, filter_wishlist
 
 
 
@@ -62,6 +62,7 @@ urlpatterns = [
     path("request-admin-flutter/", request_admin_flutter, name="request_admin_flutter"),
     path('get-user-transaction-id/', get_json_user_transaction_history, name='get_json_user_transaction_history'),
     path("has-user-reviewed-json/<uuid:id>/", has_user_reviewed_json, name="has_user_reviewed_json"),
+    path("is-logged-in-json/", is_logged_in_json, name="is_logged_in_json"),
 ]
 
 

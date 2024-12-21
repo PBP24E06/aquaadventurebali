@@ -819,3 +819,8 @@ def has_user_reviewed_json(request, id):
     return JsonResponse({
         'has_reviewed': has_reviewed
     })
+
+def is_logged_in_json(request):
+    return JsonResponse({
+        'is_logged_in': request.user.is_authenticated
+    })
