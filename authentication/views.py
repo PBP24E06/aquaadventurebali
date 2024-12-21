@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login as auth_login
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from main.models import UserProfile
 
 from django.contrib.auth.models import User
 import json
@@ -60,6 +61,7 @@ def register(request):
         
         # Create the new user
         user = User.objects.create_user(username=username, password=password1)
+        UserProfile.objects.create(user=user, role='CUSTOMER', profile_picture="static/ikon_botak/foto_ikon.jpg")
         user.save()
         
         return JsonResponse({

@@ -56,7 +56,7 @@ urlpatterns = [
     path('create-flutter/', create_product_flutter, name='create_product_flutter'),
     path('delete-flutter/<int:id>/', delete_product_flutter, name='delete_product_flutter'),
     path("show-json-review/<uuid:id>", show_review_json, name="show_review_json"),
-    path("create-review-flutter/", create_review_flutter, name="create_review_flutter")
+    path("create-review-flutter/<uuid:id>/", create_review_flutter, name="create_review_flutter")
 ]
 
 

@@ -730,12 +730,13 @@ def show_review_json(request, id):
     return JsonResponse(review_data, safe=False)
 
 @csrf_exempt
-def create_review_flutter(request):
+def create_review_flutter(request, id):
     if request.method == 'POST':
         data = json.loads(request.body)
         
+        product = Product.objects.get(pk=id)
         new_review = Review.objects.create(
-            product_id=data['product'],
+            product=product,
             user=request.user,
             rating=data['rating'],
             review_text=data['review_text'],
